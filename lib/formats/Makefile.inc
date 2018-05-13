@@ -32,6 +32,15 @@ ifeq ($(shell $(PKGCONFIG) libprotobuf-c; echo $$?),0)
 endif
 endif
 
+# Enable Binary JSON
+ifeq ($(WITH_FORMAT_BSON),1)
+ifeq ($(shell $(PKGCONFIG) libbson-1.0; echo $$?), 0)
+	LIB_SRCS += lib/formats/bson.c
+	LIB_PKGS += libbson-1.0
+	LIB_FORMATS += bson
+endif
+endif
+
 %.pb-c.c %.pb-c.h: %.proto
 	protoc-c --proto_path=$(SRCDIR) --c_out=$(SRCDIR) --dependency_out=$(BUILDDIR)/$*.d $(realpath $^)
 

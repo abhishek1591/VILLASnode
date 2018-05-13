@@ -82,7 +82,8 @@ RUN apt-get update && apt-get install -y \
 	libnanomsg-dev \
 	libprotobuf-c-dev \
 	librabbitmq-dev \
-	libmosquitto-dev
+	libmosquitto-dev \
+	libbson-dev
 
 # Build & Install Criterion
 COPY thirdparty/criterion /tmp/criterion

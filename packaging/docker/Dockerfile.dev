@@ -84,7 +84,8 @@ RUN dnf -y install \
 	protobuf-c-devel \
 	libiec61850-devel \
 	librabbitmq-devel \
-	mosquitto-devel
+	mosquitto-devel \
+	libbson-devel
 
 # Build & Install Criterion
 RUN cd /tmp && \
