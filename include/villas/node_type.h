@@ -58,7 +58,7 @@ struct node_type {
 		 * @retval 0	Success. Everything went well.
 		 * @retval <0	Error. Something went wrong.
 		 */
-		int (*start)(struct super_node *sn);
+		int (*start)(); // struct super_node *sn); // @todo: port to C++
 
 		/** Global de-initialization per node type.
 		 *
@@ -74,7 +74,7 @@ struct node_type {
 	 *
 	 * @return A pointer to the node-type specific private data.
 	 */
-	void * (*create)();
+	int (*init)();
 
 	/** Initialize a new node instance.
 	 *
@@ -182,7 +182,7 @@ struct node_type {
  *
  * @see node_type::init
  */
-int node_type_start(struct node_type *vt, struct super_node *sn);
+int node_type_start(struct node_type *vt);//, struct super_node *sn); // @todo: port to C++
 
 /** De-initialize node type subsystems.
  *
