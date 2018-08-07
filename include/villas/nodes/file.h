@@ -33,6 +33,8 @@
 #include <villas/node.h>
 #include <villas/task.h>
 
+extern const char* in_out[];
+
 #ifdef __cplusplus
 extern "C" {
 #endif

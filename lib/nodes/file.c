@@ -92,21 +92,41 @@ int file_parse(struct node *n, json_t *cfg)
 	f->buffer_size_in = 0;
 	f->buffer_size_out = 0;
 
-	ret = json_unpack_ex(cfg, &err, 0, "{ s: s, s?: s, s?: { s?: s, s?: F, s?: s, s?: F, s?: i }, s?: { s?: b, s?: i } }",
+	const char *fields[] = { "buffer_size" };
+
+	// Create json_t array to be filled. 0: in, 1: out
+	json_t *json_directions[2];
+
+	// Copy global settings to in/out
+	json_parse_in_out(cfg, json_directions, fields, ARRAY_LEN(fields));
+
+	// Parse global
+	ret = json_unpack_ex(cfg, &err, 0, "{ s: s, s?: s }",
 		"uri", &uri_tmpl,
-		"format", &format,
-		"in",
-			"eof", &eof,
-			"rate", &f->rate,
-			"epoch_mode", &epoch_mode,
-			"epoch", &epoch_flt,
-			"buffer_size", &f->buffer_size_in,
-		"out",
-			"flush", &f->flush,
-			"buffer_size", &f->buffer_size_out
+		"format", &format
 	);
 	if (ret)
 		jerror(&err, "Failed to parse configuration of node %s", node_name(n));
+
+	// Parse input
+	ret = json_unpack_ex(json_directions[0], &err, 0, "{ s?: s, s?: F, s?: s, s?: F, s?: i }",
+		"eof", &eof,
+		"rate", &f->rate,
+		"epoch_mode", &epoch_mode,
+		"epoch", &epoch_flt,
+		"buffer_size", &f->buffer_size_in
+	);
+	if (ret)
+		jerror(&err, "Failed to parse %s configuration of node %s", in_out[0], node_name(n));
+
+	// Parse output
+	ret = json_unpack_ex(json_directions[1], &err, 0, "{ s?: b, s?: i }",
+		"flush", &f->flush,
+		"buffer_size", &f->buffer_size_out
+	);
+	if (ret)
+		jerror(&err, "Failed to parse %s configuration of node %s", in_out[1], node_name(n));
+
 
 	f->epoch = time_from_double(epoch_flt);
 	f->uri_tmpl = uri_tmpl ? strdup(uri_tmpl) : NULL;
