@@ -234,6 +234,7 @@ int node_parse(struct node *n, json_t *json, const char *name)
 	nt = node_type_lookup(type);
 	assert(nt == node_type(n));
 
+<<<<<<< HEAD
 	if (nt->flags & NODE_TYPE_PROVIDES_SIGNALS) {
 		if (json_signals)
 			error("Node %s does not support signal definitions", node_name(n));
@@ -248,35 +249,19 @@ int node_parse(struct node *n, json_t *json, const char *name)
 			signal_list_generate(&n->signals, samplelen, SIGNAL_TYPE_AUTO);
 	}
 
-	struct {
-		const char *str;
-		struct node_direction *dir;
-	} dirs[] = {
-		{ "in", &n->in },
-		{ "out", &n->out }
-	};
-
 	const char *fields[] = { "builtin", "vectorize", "hooks" };
+	struct node_direction *directions[] = { &n->in, &n->out };
 
-	for (int j = 0; j < ARRAY_LEN(dirs); j++) {
-		json_t *json_dir = json_object_get(json, dirs[j].str);
+	// Create json_t array to be filled. 0: in, 1: out
+	json_t *json_directions[2];
 
-		// Skip if direction is unused
-		if (!json_dir)
-			json_dir = json_pack("{ s: b }", "enabled", 0);
+	// Copy global settings to in/out
+	json_parse_in_out(json, json_directions, fields, ARRAY_LEN(fields));
 
-		// Copy missing fields from main node config to direction config
-		for (int i = 0; i < ARRAY_LEN(fields); i++) {
-			json_t *json_field_dir  = json_object_get(json_dir, fields[i]);
-			json_t *json_field_node = json_object_get(json, fields[i]);
-
-			if (json_field_node && !json_field_dir)
-				json_object_set(json_dir, fields[i], json_field_node);
-		}
-
-		ret = node_direction_parse(dirs[j].dir, n, json_dir);
+	for (int j = 0; j < ARRAY_LEN(directions); j++) {
+		ret = node_direction_parse(directions[j], n, json_directions[j]);
 		if (ret)
-			error("Failed to parse %s direction of node %s", dirs[j].str, node_name(n));
+			error("Failed to parse %s direction of node '%s'", in_out[j], node_name(n));
 	}
 
 	ret = node_type(n)->parse ? node_type(n)->parse(n, json) : 0;

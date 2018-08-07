@@ -38,6 +38,8 @@
 #include <villas/queue.h>
 #include <villas/common.h>
 
+extern const char* in_out[];
+
 #ifdef __cplusplus
 extern "C" {
 #endif
