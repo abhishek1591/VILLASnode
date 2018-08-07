@@ -266,6 +266,8 @@ size_t strlenp(const char *str);
 /** Remove ANSI control sequences for colored output. */
 char * decolor(char *str);
 
+/** Pass a configuration to json and distribute globally defined settings to in/out sections */
+void json_parse_in_out(json_t *json, json_t *json_directions[2], const char *fields[], int argc);
 
 #ifdef __cplusplus
 }

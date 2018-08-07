@@ -416,4 +416,26 @@ char * decolor(char *str)
 	*q = '\0';
 
 	return str;
+
+/* in and out strings for json parsing */
+const char *in_out[] = { "in", "out" };
+
+void json_parse_in_out(json_t *json, json_t *json_directions[2], const char *fields[], int argc)
+{
+	for (int j = 0; j < ARRAY_LEN(in_out); j++) {
+		json_directions[j] = json_object_get(json, in_out[j]);
+
+		// Skip if direction is unused
+		if (!json_directions[j])
+			json_directions[j] = json_pack("{ s: b }", "enabled", 0);
+
+		// Copy missing fields from main node config to direction config
+		for (int i = 0; i < argc; i++) {
+			json_t *json_field_dir  = json_object_get(json_directions[j], fields[i]);
+			json_t *json_field_node = json_object_get(json, fields[i]);
+
+			if (json_field_node && !json_field_dir)
+				json_object_set(json_directions[j], fields[i], json_field_node);
+		}
+	}
 }
