@@ -139,6 +139,9 @@ if(RE_FOUND AND WITH_IO)
     list(APPEND LIBRARIES PkgConfig::RE)
 endif()
 
+# Enable ethercat support
+# TODO
+
 add_library(nodes STATIC ${NODE_SRC})
 target_include_directories(nodes PUBLIC ${INCLUDE_DIRS})
 target_link_libraries(nodes INTERFACE ${LIBRARIES} PUBLIC villas-common)
