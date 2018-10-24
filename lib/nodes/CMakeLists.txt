@@ -23,7 +23,7 @@
 set(NODE_SRC
     influxdb.c
     stats.c
-    signal_generator.c    
+    signal_generator.c
     loopback.c
 )
 
@@ -139,8 +139,12 @@ if(RE_FOUND AND WITH_IO)
     list(APPEND LIBRARIES PkgConfig::RE)
 endif()
 
-# Enable ethercat support
-# TODO
+# Enable Ethercat support
+if(ETHERCAT_FOUND AND WITH_IO)
+    list(APPEND NODE_SRC ethercat.c)
+    list(APPEND INCLUDE_DIRS ${ETHERCAT_INCLUDE_DIRS})
+    list(APPEND LIBRARIES ${ETHERCAT_LIBRARIES})
+endif()
 
 add_library(nodes STATIC ${NODE_SRC})
 target_include_directories(nodes PUBLIC ${INCLUDE_DIRS})
