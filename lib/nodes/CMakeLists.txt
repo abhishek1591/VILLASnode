@@ -57,7 +57,7 @@ endif()
 
 # Enable IEC61850 node-types when libiec61850 is available
 if(LIBIEC61850_FOUND)
-    list(APPEND NODE_SRC iec61850_sv.c iec61850.c)
+    list(APPEND NODE_SRC iec61850_sv.c iec61850_mms.c iec61850.c)
     list(APPEND INCLUDE_DIRS ${LIBIEC61850_INCLUDE_DIRS})
     list(APPEND LIBRARIES PkgConfig::LIBIEC61850)
 endif()
