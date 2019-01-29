@@ -427,7 +427,7 @@ int iec61850_sv_poll_fds(struct node *n, int fds[])
 
 static struct plugin p = {
 	.name		= "iec61850-9-2",
-	.description	= "IEC 61850-9-2 (Sampled Values)",
+	.description	= "IEC 61850-9-2 Sampled Values (libiec61850)",
 	.type		= PLUGIN_TYPE_NODE,
 	.node		= {
 		.vectorize	= 0,
