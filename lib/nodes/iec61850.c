@@ -97,53 +97,62 @@ const struct iec61850_type_descriptor * iec61850_lookup_type(const char *name)
 	return NULL;
 }
 
+const struct iec61850_type_descriptor * iec61850_parse_signal(json_t *json_signal, struct signal *sig)
+{
+	int ret;
+	const char *iec_type;
+
+	ret = json_unpack(json_signal, "{ s?: s }",
+		"iec_type", &iec_type
+	);
+	if (ret)
+		return NULL;
+
+	/* Try to deduct the IEC 61850 data type from VILLAS signal format */
+	if (!iec_type) {
+		switch (sig->type) {
+			case SIGNAL_TYPE_BOOLEAN:
+				iec_type = "boolean";
+				break;
+
+			case SIGNAL_TYPE_FLOAT:
+				iec_type = "float64";
+				break;
+
+			case SIGNAL_TYPE_INTEGER:
+				iec_type = "int64";
+				break;
+
+			default:
+				return NULL;
+		}
+	}
+
+	return iec61850_lookup_type(iec_type);
+}
+
 int iec61850_parse_signals(json_t *json_signals, struct vlist *signals, struct vlist *node_signals)
 {
 	int ret, total_size = 0;
-	const char *iec_type;
 
 	ret = vlist_init(signals);
 	if (ret)
 		return ret;
 
+	if (!node_signals)
+		return -1;
+
 	json_t *json_signal;
 	size_t i;
 	json_array_foreach(json_signals, i, json_signal) {
-		const struct iec61850_type_descriptor *td;
 		struct signal *sig;
+		const struct iec61850_type_descriptor *td;
 
-		json_unpack(json_signal, "{ s?: s }",
-			"iec_type", &iec_type
-		);
+		sig = vlist_at(node_signals, i);
+		if (!sig)
+			return -1;
 
-		/* Try to deduct the IEC 61850 data type from VILLAS signal format */
-		if (!iec_type) {
-			if (!node_signals)
-				return -1;
-
-			sig = vlist_at(node_signals, i);
-			if (!sig)
-				return -1;
-
-			switch (sig->type) {
-				case SIGNAL_TYPE_BOOLEAN:
-					iec_type = "boolean";
-					break;
-
-				case SIGNAL_TYPE_FLOAT:
-					iec_type = "float64";
-					break;
-
-				case SIGNAL_TYPE_INTEGER:
-					iec_type = "int64";
-					break;
-
-				default:
-					return -1;
-			}
-		}
-
-		td = iec61850_lookup_type(iec_type);
+		td = iec61850_parse_signal(json_signal, sig);
 		if (!td)
 			return -1;
 

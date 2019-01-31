@@ -108,6 +108,8 @@ int iec61850_type_stop();
 
 const struct iec61850_type_descriptor * iec61850_lookup_type(const char *name);
 
+const struct iec61850_type_descriptor * iec61850_parse_signal(json_t *json_signal, struct signal *sig);
+
 int iec61850_parse_signals(json_t *json_signals, struct vlist *signals, struct vlist *node_signals);
 
 struct iec61850_receiver * iec61850_receiver_lookup(enum iec61850_receiver_type t, const char *intf);
