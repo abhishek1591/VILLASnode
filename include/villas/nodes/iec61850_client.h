@@ -37,7 +37,7 @@ struct iec61850_mms_signal {
 	char *item_id;		/**< contains itemIDs for MMS values */
 };
 
-struct iec61850_mms {
+struct iec61850_client {
 	struct task task;	/**< timer for periodic events */
 	char *host;		/**< hostname / IP address of MMS Server */
 	int port;		/**< TCP port of MMS Server */
@@ -51,14 +51,5 @@ struct iec61850_mms {
 		struct vlist signals;
 
 		int total_size;
-	} in;
-
-	struct {
-		bool is_test;
-		int testvalue;
-
-		struct vlist signals;
-
-		int total_size;
-	} out;
+	} in, out;
 };
