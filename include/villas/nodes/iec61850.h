@@ -40,6 +40,7 @@
 #include <libiec61850/hal_ethernet.h>
 #include <libiec61850/goose_receiver.h>
 #include <libiec61850/sv_subscriber.h>
+#include <libiec61850/iec61850_model.h>
 
 #include <villas/node.h>
 #include <villas/list.h>
@@ -49,39 +50,13 @@
 extern "C" {
 #endif
 
-enum iec61850_type {
-	/* According to IEC 61850-7-2 */
-	IEC61850_TYPE_BOOLEAN,
-	IEC61850_TYPE_INT8,
-	IEC61850_TYPE_INT16,
-	IEC61850_TYPE_INT32,
-	IEC61850_TYPE_INT64,
-	IEC61850_TYPE_INT8U,
-	IEC61850_TYPE_INT16U,
-	IEC61850_TYPE_INT32U,
-	IEC61850_TYPE_INT64U,
-	IEC61850_TYPE_FLOAT32,
-	IEC61850_TYPE_FLOAT64,
-	IEC61850_TYPE_ENUMERATED,
-	IEC61850_TYPE_CODED_ENUM,
-	IEC61850_TYPE_OCTET_STRING,
-	IEC61850_TYPE_VISIBLE_STRING,
-	IEC61850_TYPE_OBJECTNAME,
-	IEC61850_TYPE_OBJECTREFERENCE,
-	IEC61850_TYPE_TIMESTAMP,
-	IEC61850_TYPE_ENTRYTIME,
-
-	/* According to IEC 61850-8-1 */
-	IEC61850_TYPE_BITSTRING
-};
-
 struct iec61850_type_descriptor {
 	const char *name;
-	enum iec61850_type type;
-	enum signal_type format;
 	unsigned size;
-	bool publisher;
-	bool subscriber;
+
+	enum signal_type type;
+	DataAttributeType attr_type;
+	MmsType mms_type;
 };
 
 struct iec61850_receiver {

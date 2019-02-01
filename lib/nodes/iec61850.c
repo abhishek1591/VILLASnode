@@ -36,27 +36,18 @@
 #define CONFIG_SV_DEFAULT_VLAN_ID 0
 
 const struct iec61850_type_descriptor type_descriptors[] = {
-	/* name,              type,                             format,               size, supported */
-	{ "boolean",          IEC61850_TYPE_BOOLEAN,		SIGNAL_TYPE_BOOLEAN,	 1, false, false },
-	{ "int8",             IEC61850_TYPE_INT8,		SIGNAL_TYPE_INTEGER,	 1, false, false },
-	{ "int16",            IEC61850_TYPE_INT16,		SIGNAL_TYPE_INTEGER,	 2, false, false },
-	{ "int32",            IEC61850_TYPE_INT32,		SIGNAL_TYPE_INTEGER,	 4, false, false },
-	{ "int64",            IEC61850_TYPE_INT64,		SIGNAL_TYPE_INTEGER,	 8, false, false },
-	{ "int8u",            IEC61850_TYPE_INT8U,		SIGNAL_TYPE_INTEGER,	 1, false, false },
-	{ "int16u",           IEC61850_TYPE_INT16U,		SIGNAL_TYPE_INTEGER,	 2, false, false },
-	{ "int32u",           IEC61850_TYPE_INT32U,		SIGNAL_TYPE_INTEGER,	 4, false, false },
-	{ "int64u",           IEC61850_TYPE_INT64U,		SIGNAL_TYPE_INTEGER,	 8, false, false },
-	{ "float32",          IEC61850_TYPE_FLOAT32,		SIGNAL_TYPE_FLOAT,	 4, false, false },
-	{ "float64",          IEC61850_TYPE_FLOAT64,		SIGNAL_TYPE_FLOAT,	 8, false, false },
-	{ "enumerated",       IEC61850_TYPE_ENUMERATED,		SIGNAL_TYPE_INVALID,	 4, false, false },
-	{ "coded_enum",       IEC61850_TYPE_CODED_ENUM,		SIGNAL_TYPE_INVALID,	 4, false, false },
-	{ "octet_string",     IEC61850_TYPE_OCTET_STRING,	SIGNAL_TYPE_INVALID,	20, false, false },
-	{ "visible_string",   IEC61850_TYPE_VISIBLE_STRING,	SIGNAL_TYPE_INVALID,	35, false, false },
-	{ "objectname",       IEC61850_TYPE_OBJECTNAME,		SIGNAL_TYPE_INVALID,	20, false, false },
-	{ "objectreference",  IEC61850_TYPE_OBJECTREFERENCE,	SIGNAL_TYPE_INVALID,	20, false, false },
-	{ "timestamp",        IEC61850_TYPE_TIMESTAMP,		SIGNAL_TYPE_INVALID,	 8, false, false },
-	{ "entrytime",        IEC61850_TYPE_ENTRYTIME,		SIGNAL_TYPE_INVALID,	 6, false, false },
-	{ "bitstring",        IEC61850_TYPE_BITSTRING,		SIGNAL_TYPE_INVALID,	 4, false, false }
+	/* name,	size,	format,			type,			mms_type */
+	{ "boolean",	1,	SIGNAL_TYPE_BOOLEAN,	IEC61850_BOOLEAN,	MMS_BOOLEAN	},
+	{ "int8",	1,	SIGNAL_TYPE_INTEGER,	IEC61850_INT8,		MMS_INTEGER	},
+	{ "int16",	2,	SIGNAL_TYPE_INTEGER,	IEC61850_INT16,		MMS_INTEGER	},
+	{ "int32",	4,	SIGNAL_TYPE_INTEGER,	IEC61850_INT32,		MMS_INTEGER	},
+	{ "int64",	8,	SIGNAL_TYPE_INTEGER,	IEC61850_INT64,		MMS_INTEGER	},
+	{ "int8u",	1,	SIGNAL_TYPE_INTEGER,	IEC61850_INT8U,		MMS_UNSIGNED	},
+	{ "int16u",	2,	SIGNAL_TYPE_INTEGER,	IEC61850_INT16U,	MMS_UNSIGNED	},
+	{ "int32u",	4,	SIGNAL_TYPE_INTEGER,	IEC61850_INT32U,	MMS_UNSIGNED	},
+	{ "int64u",	8,	SIGNAL_TYPE_INTEGER,	IEC61850_INT64U,	MMS_UNSIGNED	},
+	{ "float32",	4,	SIGNAL_TYPE_FLOAT,	IEC61850_FLOAT32,	MMS_FLOAT	},
+	{ "float64",	8,	SIGNAL_TYPE_FLOAT,	IEC61850_FLOAT64,	MMS_FLOAT	}
 };
 
 /** Each network interface needs a separate receiver */

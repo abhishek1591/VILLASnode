@@ -92,14 +92,38 @@ static void iec61850_sv_listener(SVSubscriber subscriber, void *ctx, SVSubscribe
 			continue;
 
 		switch (td->type) {
-			case IEC61850_TYPE_INT8:    smp->data[j].i = SVSubscriber_ASDU_getINT8(asdu,    offset); break;
-			case IEC61850_TYPE_INT16:   smp->data[j].i = SVSubscriber_ASDU_getINT16(asdu,   offset); break;
-			case IEC61850_TYPE_INT32:   smp->data[j].i = SVSubscriber_ASDU_getINT32(asdu,   offset); break;
-			case IEC61850_TYPE_INT8U:   smp->data[j].i = SVSubscriber_ASDU_getINT8U(asdu,   offset); break;
-			case IEC61850_TYPE_INT16U:  smp->data[j].i = SVSubscriber_ASDU_getINT16U(asdu,  offset); break;
-			case IEC61850_TYPE_INT32U:  smp->data[j].i = SVSubscriber_ASDU_getINT32U(asdu,  offset); break;
-			case IEC61850_TYPE_FLOAT32: smp->data[j].f = SVSubscriber_ASDU_getFLOAT32(asdu, offset); break;
-			case IEC61850_TYPE_FLOAT64: smp->data[j].f = SVSubscriber_ASDU_getFLOAT64(asdu, offset); break;
+			case IEC61850_INT8:
+				smp->data[j].i = SVSubscriber_ASDU_getINT8(asdu,    offset);
+				break;
+
+			case IEC61850_INT16:
+				smp->data[j].i = SVSubscriber_ASDU_getINT16(asdu,   offset);
+				break;
+
+			case IEC61850_INT32:
+				smp->data[j].i = SVSubscriber_ASDU_getINT32(asdu,   offset);
+				break;
+
+			case IEC61850_INT8U:
+				smp->data[j].i = SVSubscriber_ASDU_getINT8U(asdu,   offset);
+				break;
+
+			case IEC61850_INT16U:
+				smp->data[j].i = SVSubscriber_ASDU_getINT16U(asdu,  offset);
+				break;
+
+			case IEC61850_INT32U:
+				smp->data[j].i = SVSubscriber_ASDU_getINT32U(asdu,  offset);
+				break;
+
+			case IEC61850_FLOAT32:
+				smp->data[j].f = SVSubscriber_ASDU_getFLOAT32(asdu, offset);
+				break;
+
+			case IEC61850_FLOAT64:
+				smp->data[j].f = SVSubscriber_ASDU_getFLOAT64(asdu, offset);
+				break;
+
 			default: { }
 		}
 
@@ -256,10 +280,22 @@ int iec61850_sv_start(struct node *n)
 			struct iec61850_type_descriptor *m = (struct iec61850_type_descriptor *) vlist_at(&i->out.signals, k);
 
 			switch (m->type) {
-				case IEC61850_TYPE_INT8:    SVPublisher_ASDU_addINT8(i->out.asdu); break;
-				case IEC61850_TYPE_INT32:   SVPublisher_ASDU_addINT32(i->out.asdu); break;
-				case IEC61850_TYPE_FLOAT32: SVPublisher_ASDU_addFLOAT(i->out.asdu); break;
-				case IEC61850_TYPE_FLOAT64: SVPublisher_ASDU_addFLOAT64(i->out.asdu); break;
+				case IEC61850_INT8:
+					SVPublisher_ASDU_addINT8(i->out.asdu);
+					break;
+
+				case IEC61850_INT32:
+					SVPublisher_ASDU_addINT32(i->out.asdu);
+					break;
+
+				case IEC61850_FLOAT32:
+					SVPublisher_ASDU_addFLOAT(i->out.asdu);
+					break;
+
+				case IEC61850_FLOAT64:
+					SVPublisher_ASDU_addFLOAT64(i->out.asdu);
+					break;
+
 				default: { }
 			}
 		}
@@ -378,13 +414,13 @@ int iec61850_sv_write(struct node *n, struct sample *smps[], unsigned cnt, unsig
 			double fval = 0;
 
 			switch (m->type) {
-				case IEC61850_TYPE_INT8:
-				case IEC61850_TYPE_INT32:
+				case IEC61850_INT8:
+				case IEC61850_INT32:
 					ival = sample_format(smps[j], k) == SIGNAL_TYPE_FLOAT ? smps[j]->data[k].f : smps[j]->data[k].i;
 					break;
 
-				case IEC61850_TYPE_FLOAT32:
-				case IEC61850_TYPE_FLOAT64:
+				case IEC61850_FLOAT32:
+				case IEC61850_FLOAT64:
 					fval = sample_format(smps[j], k) == SIGNAL_TYPE_FLOAT ? smps[j]->data[k].f : smps[j]->data[k].i;
 					break;
 
@@ -392,10 +428,22 @@ int iec61850_sv_write(struct node *n, struct sample *smps[], unsigned cnt, unsig
 			}
 
 			switch (m->type) {
-				case IEC61850_TYPE_INT8:    SVPublisher_ASDU_setINT8(i->out.asdu,    offset, ival); break;
-				case IEC61850_TYPE_INT32:   SVPublisher_ASDU_setINT32(i->out.asdu,   offset, ival); break;
-				case IEC61850_TYPE_FLOAT32: SVPublisher_ASDU_setFLOAT(i->out.asdu,   offset, fval); break;
-				case IEC61850_TYPE_FLOAT64: SVPublisher_ASDU_setFLOAT64(i->out.asdu, offset, fval); break;
+				case IEC61850_INT8:
+					SVPublisher_ASDU_setINT8(i->out.asdu,    offset, ival);
+					break;
+
+				case IEC61850_INT32:
+					SVPublisher_ASDU_setINT32(i->out.asdu,   offset, ival);
+					break;
+
+				case IEC61850_FLOAT32:
+					SVPublisher_ASDU_setFLOAT(i->out.asdu,   offset, fval);
+					break;
+
+				case IEC61850_FLOAT64:
+					SVPublisher_ASDU_setFLOAT64(i->out.asdu, offset, fval);
+					break;
+
 				default: { }
 			}
 
