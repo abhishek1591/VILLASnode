@@ -30,7 +30,7 @@ ARG VARIANT=unknown
 RUN echo 'APT::Default-Release "stable";' > /etc/apt/apt.conf.d/99defaultrelease
 RUN echo 'deb http://archive.raspbian.org/raspbian buster main contrib non-free rpi firmware' >> /etc/apt/sources.list.d/buster.list
 
-RUN apt-get install -y -t buster \
+RUN apt-get install -y \
 	gcc-8 g++-8 cmake
 
 # Toolchain
