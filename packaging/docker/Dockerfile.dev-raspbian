@@ -30,21 +30,23 @@ ARG VARIANT=unknown
 RUN echo 'APT::Default-Release "stable";' > /etc/apt/apt.conf.d/99defaultrelease
 RUN echo 'deb http://archive.raspbian.org/raspbian buster main contrib non-free rpi firmware' >> /etc/apt/sources.list.d/buster.list
 
-RUN apt-get install -y -t buster \
+RUN apt-get update && apt-get upgrade -y
+
+RUN apt-get update && apt-get install -y -t buster \
 	gcc-8 g++-8 cmake
 
+
+
 # Toolchain
-RUN apt-get update && apt-get install -y \
+RUN apt-get install -y -t buster\
 	autoconf automake libtool \
 	pkg-config make \
 	git curl tar bzip2 \
 	protobuf-compiler protobuf-c-compiler
 
-RUN apt-get install -y -t buster \
-	gcc-8 g++-8
 
 # Dependencies
-RUN apt-get install -y \
+RUN apt-get install -y -t buster\
 	libssl-dev \
 	libprotobuf-dev \
 	libprotobuf-c-dev \
