@@ -34,14 +34,12 @@ RUN apt-get update && apt-get install -y \
 	gcc g++ cmake
 
 # Toolchain
-RUN apt-get update && apt-get install -y \
+RUN apt-get install -y \
 	autoconf automake libtool \
 	pkg-config make \
 	git curl tar bzip2 \
 	protobuf-compiler protobuf-c-compiler
 
-RUN apt-get install -y \
-	gcc g++
 
 # Dependencies
 RUN apt-get install -y \
@@ -63,8 +61,8 @@ RUN apt-get install -y \
 	libre-dev \
 	libusb-1.0-0-dev
 
-ENV CC=gcc-8
-ENV CXX=gcc-8
+ENV CC=gcc
+ENV CXX=gcc
 
 # Build & Install libwebsockets
 RUN cd /tmp && \
