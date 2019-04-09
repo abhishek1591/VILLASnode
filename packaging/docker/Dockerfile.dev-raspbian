@@ -31,7 +31,7 @@ RUN echo 'APT::Default-Release "stable";' > /etc/apt/apt.conf.d/99defaultrelease
 RUN echo 'deb http://archive.raspbian.org/raspbian buster main contrib non-free rpi firmware' >> /etc/apt/sources.list.d/buster.list
 
 RUN apt-get update && apt-get install -y \
-	gcc g++ cmake
+	gcc g++ wget
 
 # Toolchain
 RUN apt-get install -y \
@@ -63,6 +63,15 @@ RUN apt-get install -y \
 
 ENV CC=gcc
 ENV CXX=gcc
+
+# Build & Install CMake 3.12
+RUN cd /tmp && \
+    mkdir -p cmake-3.12 && cd cmake-3.12 && \
+    wget -q https://cmake.org/files/v3.12/cmake-3.12.0-Linux-x86_64.sh && \
+    chmod +x cmake-3.12.0-Linux-x86_64.sh && \
+    ./cmake-3.12.0-Linux-x86_64.sh --prefix=/usr/local --skip-license && \
+    export PATH=/usr/local/bin:$PATH && \
+    rm -rf /tmp/*
 
 # Build & Install libwebsockets
 RUN cd /tmp && \
