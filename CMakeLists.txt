@@ -33,7 +33,7 @@ set(PROJECT_HOMEPAGE_URL "https://www.fein-aachen.org/projects/villas-node/")
 
 # Several CMake settings/defaults
 set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_THREAD_PREFER_PTHREAD ON)
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake;${PROJECT_SOURCE_DIR}/common/cmake")
 
@@ -104,7 +104,7 @@ pkg_check_modules(RABBITMQ_C IMPORTED_TARGET librabbitmq>=0.8.0)
 pkg_check_modules(COMEDILIB IMPORTED_TARGET comedilib>=0.11.0)
 pkg_check_modules(LIBZMQ IMPORTED_TARGET libzmq>=2.2.0)
 pkg_check_modules(LIBULDAQ IMPORTED_TARGET libuldaq>=1.0.0)
-pkg_check_modules(UUID IMPORTED_TARGET REQUIRED uuid>=2.29)
+pkg_check_modules(UUID IMPORTED_TARGET REQUIRED uuid>=2.27)
 pkg_check_modules(NANOMSG IMPORTED_TARGET nanomsg)
 if(NOT NANOMSG_FOUND)
     pkg_check_modules(NANOMSG IMPORTED_TARGET libnanomsg>=1.0.0)
