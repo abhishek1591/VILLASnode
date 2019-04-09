@@ -70,7 +70,7 @@ list(APPEND FORMAT_SRC
     msg.cpp
 )
 add_library(formats STATIC ${FORMAT_SRC})
-set_property(TARGET formats PROPERTY CXX_STANDARD 0)
-target_compile_options(formats PRIVATE -x c)
+#set_property(TARGET formats PROPERTY CXX_STANDARD 0)
+#target_compile_options(formats PRIVATE -x c)
 target_include_directories(formats PUBLIC ${INCLUDE_DIRS})
 target_link_libraries(formats INTERFACE ${LIBRARIES} PUBLIC villas-common)
