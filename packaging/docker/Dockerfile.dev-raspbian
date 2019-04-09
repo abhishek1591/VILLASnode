@@ -31,7 +31,7 @@ RUN echo 'APT::Default-Release "stable";' > /etc/apt/apt.conf.d/99defaultrelease
 RUN echo 'deb http://archive.raspbian.org/raspbian buster main contrib non-free rpi firmware' >> /etc/apt/sources.list.d/buster.list
 
 RUN apt-get update && apt-get install -y \
-	gcc g++
+	gcc g++ wget
 
 # Toolchain
 RUN apt-get install -y \
