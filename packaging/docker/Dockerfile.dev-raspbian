@@ -33,7 +33,7 @@ RUN echo 'deb http://archive.raspbian.org/raspbian buster main contrib non-free 
 RUN apt-get update && apt-get upgrade -y
 
 RUN apt-get update && apt-get install -y -t buster \
-	gcc-8 g++-8 cmake
+	gcc-8 g++-8 cmake libcurl3 libssl1.1
 
 
 
