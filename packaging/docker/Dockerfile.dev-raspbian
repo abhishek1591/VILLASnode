@@ -62,12 +62,11 @@ RUN apt-get install -y\
 ENV CC=gcc
 ENV CXX=g++
 
-# Build & Install CMake 3.14.1
+# Install CMake 3.14
 RUN cd /tmp && \
-    wget https://github.com/Kitware/CMake/releases/download/v3.14.1/cmake-3.14.1.tar.gz && \
-    tar -xzf cmake-3.14.1.tar.gz && \
-    cd cmake-3.14.1 && ./bootstrap -- -DCMAKE_BUILD_TYPE:STRING=Release && \
-    make && make install && \
+    wget -q https://cmake.org/files/v3.14/cmake-3.14.1-Linux-x86_64.sh && \
+    chmod +x cmake-3.14.1-Linux-x86_64.sh && \
+    ./cmake-3.14.1-Linux-x86_64.sh --skip-license && \
     rm -rf /tmp/*
 
 # Add CMake install dir to PATH
