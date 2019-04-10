@@ -26,7 +26,7 @@
 #include <villas/nodes/mqtt.hpp>
 #include <villas/plugin.h>
 #include <villas/utils.hpp>
-#include <villas/format_type.h>
+#include <villas/format.hpp>
 
 static void mqtt_log_cb(struct mosquitto *mosq, void *userdata, int level, const char *str)
 {

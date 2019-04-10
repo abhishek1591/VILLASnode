@@ -32,7 +32,6 @@
 #include <villas/timing.h>
 #include <villas/queue.h>
 #include <villas/plugin.h>
-#include <villas/io.h>
 
 static char * file_format_name(const char *format, struct timespec *ts)
 {

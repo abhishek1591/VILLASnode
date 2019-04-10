@@ -21,11 +21,11 @@
  *********************************************************************************/
 
 #include <villas/sample.h>
-#include <villas/plugin.h>
 #include <villas/utils.hpp>
-#include <villas/io.h>
-#include <villas/formats/raw.h>
+#include <villas/formats/raw.hpp>
 #include <villas/compat.h>
+
+using namespace villas::node::formats;
 
 typedef float flt32_t;
 typedef double flt64_t;
@@ -51,7 +51,7 @@ typedef long double flt128_t; /** @todo: check */
 /** Convert integer of varying width to big/little endian byte order */
 #define SWAP_INT_HTOX(o, b, n) (o ? htobe ## b (n) : htole ## b (n))
 
-int raw_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt)
+int Raw::print(char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt)
 {
 	int o = 0;
 	size_t nlen;
@@ -67,7 +67,7 @@ int raw_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct samp
 	__float128 *f128 = (__float128 *) buf;
 #endif
 
-	int bits = 1 << (io->flags >> 24);
+	int bits = 1 << (flags >> 24);
 
 	for (unsigned i = 0; i < cnt; i++) {
 		struct sample *smp = smps[i];
@@ -76,7 +76,7 @@ int raw_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct samp
 		*
 		* These fields are always encoded as integers!
 		*/
-		if (io->flags & RAW_FAKE_HEADER) {
+		if (flags & RAW_FAKE_HEADER) {
 			/* Check length */
 			nlen = (o + 3) * (bits / 8);
 			if (nlen >= len)
@@ -90,28 +90,28 @@ int raw_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct samp
 					break;
 
 				case 16:
-					i16[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 16, smp->sequence);
-					i16[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 16, smp->ts.origin.tv_sec);
-					i16[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 16, smp->ts.origin.tv_nsec);
+					i16[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 16, smp->sequence);
+					i16[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 16, smp->ts.origin.tv_sec);
+					i16[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 16, smp->ts.origin.tv_nsec);
 					break;
 
 				case 32:
-					i32[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 32, smp->sequence);
-					i32[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 32, smp->ts.origin.tv_sec);
-					i32[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 32, smp->ts.origin.tv_nsec);
+					i32[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 32, smp->sequence);
+					i32[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 32, smp->ts.origin.tv_sec);
+					i32[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 32, smp->ts.origin.tv_nsec);
 					break;
 
 				case 64:
-					i64[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 64, smp->sequence);
-					i64[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 64, smp->ts.origin.tv_sec);
-					i64[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 64, smp->ts.origin.tv_nsec);
+					i64[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 64, smp->sequence);
+					i64[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 64, smp->ts.origin.tv_sec);
+					i64[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 64, smp->ts.origin.tv_nsec);
 					break;
 
 #ifdef HAS_128BIT
 				case 128:
-					i128[o++] = SWAP_INT_TO_LE(io->flags & RAW_BIG_ENDIAN, 128, smp->sequence);
-					i128[o++] = SWAP_INT_TO_LE(io->flags & RAW_BIG_ENDIAN, 128, smp->ts.origin.tv_sec);
-					i128[o++] = SWAP_INT_TO_LE(io->flags & RAW_BIG_ENDIAN, 128, smp->ts.origin.tv_nsec);
+					i128[o++] = SWAP_INT_TO_LE(flags & RAW_BIG_ENDIAN, 128, smp->sequence);
+					i128[o++] = SWAP_INT_TO_LE(flags & RAW_BIG_ENDIAN, 128, smp->ts.origin.tv_sec);
+					i128[o++] = SWAP_INT_TO_LE(flags & RAW_BIG_ENDIAN, 128, smp->ts.origin.tv_nsec);
 					break;
 #endif
 			}
@@ -138,15 +138,15 @@ int raw_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct samp
 							break; /* Not supported */
 
 						case 32:
-							f32[o++] = SWAP_FLOAT_HTOX(io->flags & RAW_BIG_ENDIAN,  32, (float) data->f);
+							f32[o++] = SWAP_FLOAT_HTOX(flags & RAW_BIG_ENDIAN,  32, (float) data->f);
 							break;
 
 						case 64:
-							f64[o++] = SWAP_FLOAT_HTOX(io->flags & RAW_BIG_ENDIAN,  64, data->f);
+							f64[o++] = SWAP_FLOAT_HTOX(flags & RAW_BIG_ENDIAN,  64, data->f);
 							break;
 
 #ifdef HAS_128BIT
-						case 128: f128[o++] = SWAP_FLOAT_HTOX(io->flags & RAW_BIG_ENDIAN, 128, data->f); break;
+						case 128: f128[o++] = SWAP_FLOAT_HTOX(flags & RAW_BIG_ENDIAN, 128, data->f); break;
 #endif
 					}
 					break;
@@ -158,20 +158,20 @@ int raw_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct samp
 							break;
 
 						case 16:
-							i16[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 16,  data->i);
+							i16[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 16,  data->i);
 							break;
 
 						case 32:
-							i32[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 32,  data->i);
+							i32[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 32,  data->i);
 							break;
 
 						case 64:
-							i64[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 64,  data->i);
+							i64[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 64,  data->i);
 							break;
 
 #ifdef HAS_128BIT
 						case 128:
-							i128[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 128, data->i);
+							i128[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 128, data->i);
 							break;
 #endif
 					}
@@ -184,20 +184,20 @@ int raw_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct samp
 							break;
 
 						case 16:
-							i16[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 16,  data->b ? 1 : 0);
+							i16[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 16,  data->b ? 1 : 0);
 							break;
 
 						case 32:
-							i32[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 32,  data->b ? 1 : 0);
+							i32[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 32,  data->b ? 1 : 0);
 							break;
 
 						case 64:
-							i64[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 64,  data->b ? 1 : 0);
+							i64[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 64,  data->b ? 1 : 0);
 							break;
 
 #ifdef HAS_128BIT
 						case 128:
-							i128[o++] = SWAP_INT_HTOX(io->flags & RAW_BIG_ENDIAN, 128, data->b ? 1 : 0);
+							i128[o++] = SWAP_INT_HTOX(flags & RAW_BIG_ENDIAN, 128, data->b ? 1 : 0);
 							break;
 #endif
 					}
@@ -216,18 +216,18 @@ int raw_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct samp
 							break;
 
 						case 32:
-							f32[o++]  = SWAP_FLOAT_HTOX(io->flags & RAW_BIG_ENDIAN,  32, (float) creal(data->z));
-							f32[o++]  = SWAP_FLOAT_HTOX(io->flags & RAW_BIG_ENDIAN,  32, (float ) cimag(data->z));
+							f32[o++]  = SWAP_FLOAT_HTOX(flags & RAW_BIG_ENDIAN,  32, (float) creal(data->z));
+							f32[o++]  = SWAP_FLOAT_HTOX(flags & RAW_BIG_ENDIAN,  32, (float ) cimag(data->z));
 							break;
 
 						case 64:
-							f64[o++]  = SWAP_FLOAT_HTOX(io->flags & RAW_BIG_ENDIAN,  64, creal(data->z));
-							f64[o++]  = SWAP_FLOAT_HTOX(io->flags & RAW_BIG_ENDIAN,  64, cimag(data->z));
+							f64[o++]  = SWAP_FLOAT_HTOX(flags & RAW_BIG_ENDIAN,  64, creal(data->z));
+							f64[o++]  = SWAP_FLOAT_HTOX(flags & RAW_BIG_ENDIAN,  64, cimag(data->z));
 							break;
 #ifdef HAS_128BIT
 						case 128:
-							f128[o++] = SWAP_FLOAT_HTOX(io->flags & RAW_BIG_ENDIAN, 128, creal(data->z);
-							f128[o++] = SWAP_FLOAT_HTOX(io->flags & RAW_BIG_ENDIAN, 128, cimag(data->z);
+							f128[o++] = SWAP_FLOAT_HTOX(flags & RAW_BIG_ENDIAN, 128, creal(data->z);
+							f128[o++] = SWAP_FLOAT_HTOX(flags & RAW_BIG_ENDIAN, 128, cimag(data->z);
 							break;
 #endif
 					}
@@ -245,7 +245,7 @@ out:	if (wbytes)
 	return cnt;
 }
 
-int raw_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt)
+int Raw::scan(const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt)
 {
 	int8_t     *i8  =  (int8_t *)  buf;
 	int16_t    *i16 =  (int16_t *) buf;
@@ -262,7 +262,7 @@ int raw_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct
 	 * as there is no support for framing. */
 	struct sample *smp = smps[0];
 
-	int o = 0, bits = 1 << (io->flags >> 24);
+	int o = 0, bits = 1 << (flags >> 24);
 	int nlen = len / (bits / 8);
 
 	if (cnt > 1)
@@ -273,7 +273,7 @@ int raw_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct
 		return -1;
 	}
 
-	if (io->flags & RAW_FAKE_HEADER) {
+	if (flags & RAW_FAKE_HEADER) {
 		if (nlen < o + 3) {
 			warning("Received a packet with no fake header. Skipping...");
 			return -1;
@@ -287,28 +287,28 @@ int raw_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct
 				break;
 
 			case 16:
-				smp->sequence          = SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 16, i16[o++]);
-				smp->ts.origin.tv_sec  = SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 16, i16[o++]);
-				smp->ts.origin.tv_nsec = SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 16, i16[o++]);
+				smp->sequence          = SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 16, i16[o++]);
+				smp->ts.origin.tv_sec  = SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 16, i16[o++]);
+				smp->ts.origin.tv_nsec = SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 16, i16[o++]);
 				break;
 
 			case 32:
-				smp->sequence          = SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 32, i32[o++]);
-				smp->ts.origin.tv_sec  = SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 32, i32[o++]);
-				smp->ts.origin.tv_nsec = SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 32, i32[o++]);
+				smp->sequence          = SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 32, i32[o++]);
+				smp->ts.origin.tv_sec  = SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 32, i32[o++]);
+				smp->ts.origin.tv_nsec = SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 32, i32[o++]);
 				break;
 
 			case 64:
-				smp->sequence          = SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 64, i64[o++]);
-				smp->ts.origin.tv_sec  = SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 64, i64[o++]);
-				smp->ts.origin.tv_nsec = SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 64, i64[o++]);
+				smp->sequence          = SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 64, i64[o++]);
+				smp->ts.origin.tv_sec  = SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 64, i64[o++]);
+				smp->ts.origin.tv_nsec = SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 64, i64[o++]);
 				break;
 
 #ifdef HAS_128BIT
 			case 128:
-				smp->sequence          = SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 128, i128[o++]);
-				smp->ts.origin.tv_sec  = SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 128, i128[o++]);
-				smp->ts.origin.tv_nsec = SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 128, i128[o++]);
+				smp->sequence          = SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 128, i128[o++]);
+				smp->ts.origin.tv_sec  = SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 128, i128[o++]);
+				smp->ts.origin.tv_nsec = SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 128, i128[o++]);
 				break;
 #endif
 		}
@@ -322,7 +322,7 @@ int raw_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct
 		smp->ts.origin.tv_nsec = 0;
 	}
 
-	smp->signals = io->signals;
+	smp->signals = signals;
 
 	unsigned i;
 	for (i = 0; i < smp->capacity && o < nlen; i++) {
@@ -335,10 +335,10 @@ int raw_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct
 					case 8:   data->f = -1; o++; break; /* Not supported */
 					case 16:  data->f = -1; o++; break; /* Not supported */
 
-					case 32:  data->f = SWAP_FLOAT_XTOH(io->flags & RAW_BIG_ENDIAN, 32, f32[o++]); break;
-					case 64:  data->f = SWAP_FLOAT_XTOH(io->flags & RAW_BIG_ENDIAN, 64, f64[o++]); break;
+					case 32:  data->f = SWAP_FLOAT_XTOH(flags & RAW_BIG_ENDIAN, 32, f32[o++]); break;
+					case 64:  data->f = SWAP_FLOAT_XTOH(flags & RAW_BIG_ENDIAN, 64, f64[o++]); break;
 #ifdef HAS_128BIT
-					case 128: data->f = SWAP_FLOAT_XTOH(io->flags & RAW_BIG_ENDIAN, 128, f128[o++]); break;
+					case 128: data->f = SWAP_FLOAT_XTOH(lags & RAW_BIG_ENDIAN, 128, f128[o++]); break;
 #endif
 				}
 				break;
@@ -346,11 +346,11 @@ int raw_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct
 			case SIGNAL_TYPE_INTEGER:
 				switch (bits) {
 					case 8:   data->i = (int8_t)                                                    i8[o++];  break;
-					case 16:  data->i = (int16_t)  SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN,  16,  i16[o++]); break;
-					case 32:  data->i = (int32_t)  SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN,  32,  i32[o++]); break;
-					case 64:  data->i = (int64_t)  SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN,  64,  i64[o++]); break;
+					case 16:  data->i = (int16_t)  SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN,  16,  i16[o++]); break;
+					case 32:  data->i = (int32_t)  SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN,  32,  i32[o++]); break;
+					case 64:  data->i = (int64_t)  SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN,  64,  i64[o++]); break;
 #ifdef HAS_128BIT
-					case 128: data->i = (__int128) SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 128, i128[o++]); break;
+					case 128: data->i = (__int128) SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 128, i128[o++]); break;
 #endif
 				}
 				break;
@@ -358,11 +358,11 @@ int raw_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct
 			case SIGNAL_TYPE_BOOLEAN:
 				switch (bits) {
 					case 8:   data->b = (bool)                                                  i8[o++];  break;
-					case 16:  data->b = (bool) SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN,  16,  i16[o++]); break;
-					case 32:  data->b = (bool) SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN,  32,  i32[o++]); break;
-					case 64:  data->b = (bool) SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN,  64,  i64[o++]); break;
+					case 16:  data->b = (bool) SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN,  16,  i16[o++]); break;
+					case 32:  data->b = (bool) SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN,  32,  i32[o++]); break;
+					case 64:  data->b = (bool) SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN,  64,  i64[o++]); break;
 #ifdef HAS_128BIT
-					case 128: data->b = (bool) SWAP_INT_XTOH(io->flags & RAW_BIG_ENDIAN, 128, i128[o++]); break;
+					case 128: data->b = (bool) SWAP_INT_XTOH(flags & RAW_BIG_ENDIAN, 128, i128[o++]); break;
 #endif
 				}
 				break;
@@ -372,18 +372,18 @@ int raw_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct
 					case 8:  data->z = -1 + _Complex_I * -1; o += 2; break; /* Not supported */
 					case 16: data->z = -1 + _Complex_I * -1; o += 2; break; /* Not supported */
 
-					case 32: data->z = SWAP_FLOAT_XTOH(io->flags & RAW_BIG_ENDIAN, 32, f32[o++])
-							+ _Complex_I * SWAP_FLOAT_XTOH(io->flags & RAW_BIG_ENDIAN, 32, f32[o++]);
+					case 32: data->z = SWAP_FLOAT_XTOH(flags & RAW_BIG_ENDIAN, 32, f32[o++])
+							+ _Complex_I * SWAP_FLOAT_XTOH(flags & RAW_BIG_ENDIAN, 32, f32[o++]);
 
 						break;
 
-					case 64: data->z = SWAP_FLOAT_XTOH(io->flags & RAW_BIG_ENDIAN, 64, f64[o++])
-							+ _Complex_I * SWAP_FLOAT_XTOH(io->flags & RAW_BIG_ENDIAN, 64, f64[o++]);
+					case 64: data->z = SWAP_FLOAT_XTOH(flags & RAW_BIG_ENDIAN, 64, f64[o++])
+							+ _Complex_I * SWAP_FLOAT_XTOH(flags & RAW_BIG_ENDIAN, 64, f64[o++]);
 						break;
 
 #if HAS_128BIT
-					case 128: data->z = SWAP_FLOAT_XTOH(io->flags & RAW_BIG_ENDIAN, 128, f128[o++])
-							+ _Complex_I * SWAP_FLOAT_XTOH(io->flags & RAW_BIG_ENDIAN, 128, f128[o++]);
+					case 128: data->z = SWAP_FLOAT_XTOH(flags & RAW_BIG_ENDIAN, 128, f128[o++])
+							+ _Complex_I * SWAP_FLOAT_XTOH(flags & RAW_BIG_ENDIAN, 128, f128[o++]);
 						break;
 #endif
 				}
@@ -408,41 +408,22 @@ int raw_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct
 	return 1;
 }
 
-#define REGISTER_FORMAT_RAW(i, n, d, f)					\
-static struct plugin i;							\
-__attribute__((constructor(110))) static void UNIQUE(__ctor)() {	\
-	if (plugins.state == STATE_DESTROYED)				\
-		vlist_init(&plugins);					\
-									\
-	i.name 		= n;						\
-	i.description 	= d;						\
-	i.type 		= PLUGIN_TYPE_FORMAT;				\
-	i.format.sprint = raw_sprint;					\
-	i.format.sscan  = raw_sscan;					\
-	i.format.flags 	= f | IO_HAS_BINARY_PAYLOAD |			\
-			     SAMPLE_HAS_DATA;				\
-									\
-	vlist_push(&plugins, &i);					\
-}									\
-									\
-__attribute__((destructor(110))) static void UNIQUE(__dtor)() {		\
-        if (plugins.state != STATE_DESTROYED)				\
-	        vlist_remove_all(&plugins, &i);				\
-}
-/* Feel free to add additional format identifiers here to suit your needs */
-REGISTER_FORMAT_RAW(p_8,	"raw.8",	"Raw  8 bit",					RAW_BITS_8)
-REGISTER_FORMAT_RAW(p_16be,	"raw.16.be",	"Raw 16 bit, big endian byte-order",		RAW_BITS_16 | RAW_BIG_ENDIAN)
-REGISTER_FORMAT_RAW(p_32be,	"raw.32.be",	"Raw 32 bit, big endian byte-order",		RAW_BITS_32 | RAW_BIG_ENDIAN)
-REGISTER_FORMAT_RAW(p_64be,	"raw.64.be",	"Raw 64 bit, big endian byte-order",		RAW_BITS_64 | RAW_BIG_ENDIAN)
-
-REGISTER_FORMAT_RAW(p_16le,	"raw.16.le",	"Raw 16 bit, little endian byte-order",		RAW_BITS_16)
-REGISTER_FORMAT_RAW(p_32le,	"raw.32.le",	"Raw 32 bit, little endian byte-order",		RAW_BITS_32)
-REGISTER_FORMAT_RAW(p_64le,	"raw.64.le",	"Raw 64 bit, little endian byte-order",		RAW_BITS_64)
+/* Register plugins
+ *
+ * Feel free to add additional format identifiers here to suit your needs.
+ * */
+static FormatPlugin<Raw> p_8(    "raw.8",	"Raw  8 bit",				 IO_HAS_BINARY_PAYLOAD | SAMPLE_HAS_DATA | RAW_BITS_8)
+static FormatPlugin<Raw> p_16be( "raw.16.be",	"Raw 16 bit, big endian byte-order",	 IO_HAS_BINARY_PAYLOAD | SAMPLE_HAS_DATA | RAW_BITS_16 | RAW_BIG_ENDIAN)
+static FormatPlugin<Raw> p_32be( "raw.32.be",	"Raw 32 bit, big endian byte-order",	 IO_HAS_BINARY_PAYLOAD | SAMPLE_HAS_DATA | RAW_BITS_32 | RAW_BIG_ENDIAN)
+static FormatPlugin<Raw> p_64be( "raw.64.be",	"Raw 64 bit, big endian byte-order",	 IO_HAS_BINARY_PAYLOAD | SAMPLE_HAS_DATA | RAW_BITS_64 | RAW_BIG_ENDIAN)
+static FormatPlugin<Raw> p_16le( "raw.16.le",	"Raw 16 bit, little endian byte-order",	 IO_HAS_BINARY_PAYLOAD | SAMPLE_HAS_DATA | RAW_BITS_16)
+static FormatPlugin<Raw> p_32le( "raw.32.le",	"Raw 32 bit, little endian byte-order",	 IO_HAS_BINARY_PAYLOAD | SAMPLE_HAS_DATA | RAW_BITS_32)
+static FormatPlugin<Raw> p_64le( "raw.64.le",	"Raw 64 bit, little endian byte-order",	 IO_HAS_BINARY_PAYLOAD | SAMPLE_HAS_DATA | RAW_BITS_64)
 
 #ifdef HAS_128BIT
-REGISTER_FORMAT_RAW(p_128le,	"raw.128.be",	"Raw 128 bit, big endian byte-order",		RAW_BITS_128 | RAW_BIG_ENDIAN)
-REGISTER_FORMAT_RAW(p_128le,	"raw.128.le",	"Raw 128 bit, little endian byte-order",	RAW_BITS_128)
+static FormatPlugin<Raw> p_128le("raw.128.be",	"Raw 128 bit, big endian byte-order",	 IO_HAS_BINARY_PAYLOAD | SAMPLE_HAS_DATA | RAW_BITS_128 | RAW_BIG_ENDIAN)
+static FormatPlugin<Raw> p_128le("raw.128.le",	"Raw 128 bit, little endian byte-order", IO_HAS_BINARY_PAYLOAD | SAMPLE_HAS_DATA | RAW_BITS_128)
 #endif
 
-REGISTER_FORMAT_RAW(p_gtnet,	"gtnet",	"RTDS GTNET",					RAW_BITS_32 | RAW_BIG_ENDIAN)
-REGISTER_FORMAT_RAW(p_gtnef,	"gtnet.fake",	"RTDS GTNET with fake header",			RAW_BITS_32 | RAW_BIG_ENDIAN | RAW_FAKE_HEADER)
+static FormatPlugin<Raw> p_gtnet("gtnet",	"RTDS GTNET",				 IO_HAS_BINARY_PAYLOAD | SAMPLE_HAS_DATA | RAW_BITS_32 | RAW_BIG_ENDIAN)
+static FormatPlugin<Raw> p_gtnef("gtnet.fake",	"RTDS GTNET with fake header",		 IO_HAS_BINARY_PAYLOAD | SAMPLE_HAS_DATA | RAW_BITS_32 | RAW_BIG_ENDIAN | RAW_FAKE_HEADER)

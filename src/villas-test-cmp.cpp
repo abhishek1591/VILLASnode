@@ -27,8 +27,7 @@
 #include <jansson.h>
 
 #include <villas/sample.h>
-#include <villas/io.h>
-#include <villas/format_type.h>
+#include <villas/format.hpp>
 #include <villas/utils.hpp>
 #include <villas/log.hpp>
 #include <villas/copyright.hpp>

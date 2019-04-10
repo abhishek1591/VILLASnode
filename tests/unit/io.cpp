@@ -33,7 +33,6 @@
 #include <villas/signal.h>
 #include <villas/plugin.h>
 #include <villas/pool.h>
-#include <villas/io.h>
 #include <villas/log.hpp>
 
 using namespace villas;

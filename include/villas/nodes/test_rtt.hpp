@@ -30,7 +30,6 @@
 #pragma once
 
 #include <villas/list.h>
-#include <villas/io.h>
 #include <villas/task.h>
 
 /* Forward declarations */
@@ -49,8 +48,9 @@ struct test_rtt_case {
 
 struct test_rtt {
 	struct task task;	/**< The periodic task for test_rtt_read() */
-	struct io io;		/**< The format of the output file */
-	struct format_type *format;
+
+	FormatFactory format_factory;
+	Format *format;
 
 	double cooldown;	/**< Number of seconds to wait beween tests. */
 

@@ -31,7 +31,7 @@ namespace node {
 class Format {
 
 public:
-	enum Flags {
+	enum flags {
 		/* Bits 0-7 are reserved for for flags defined by enum sample_flags */
 		FLUSH			= (1 << 8),	/**< Flush the output stream after each chunk of samples. */
 		NONBLOCK		= (1 << 9),	/**< Dont block read() while waiting for new samples. */
@@ -48,53 +48,35 @@ protected:
 	struct vlist *signals;			/**< Signal meta data for parsed samples by scan() */
 
 public:
-	int Format(struct vlist *signals, int flags);
+	Format(struct vlist *signals, int flags);
 
-	int Format(const char *dt, int flags);
+	Format(const char *dt, int flags);
 
-	virtual ~Format()
-	{ }
+	virtual ~Format();
 
 	int check();
-
-	/** Format header */
-	void header(char *buf, size_t len, size_t *wbytes, const struct sample *smp);
-
-	/** Format footer */
-	void footer(char *buf, size_t len, size_t *wbytes);
-
-	void header(FILE *f, const struct sample *smp);
-	void footer(FILE *f);
 
 	/** Parse samples from the buffer \p buf with a length of \p len bytes.
 	 *
 	 * @param buf[in]	The buffer of data which should be parsed / de-serialized.
 	 * @param len[in]	The length of the buffer \p buf.
-	 * @param rbytes[out]	The number of bytes which have been read from \p buf.
 	 * @param smps[out]	The array of pointers to samples.
 	 * @param cnt[in]	The number of pointers in the array \p smps.
 	 *
-	 * @retval >=0		The number of samples which have been parsed from \p buf and written into \p smps.
-	 * @retval <0		Something went wrong.
+	 * @return		The number of bytes which have been read from \p buf.
 	 */
-	int scan(const char *buf, size_t len, size_t *rbytes, const struct sample *smps[], unsigned cnt) = 0;
+	size_t scan(const char *buf, size_t len, struct sample *smps[], unsigned cnt) = 0;
 
 	/** Print \p cnt samples from \p smps into buffer \p buf of length \p len.
 	 *
 	 * @param buf[out]	The buffer which should be filled with serialized data.
 	 * @param len[in]	The length of the buffer \p buf.
-	 * @param rbytes[out]	The number of bytes which have been written to \p buf. Ignored if NULL.
 	 * @param smps[in]	The array of pointers to samples.
 	 * @param cnt[in]	The number of pointers in the array \p smps.
 	 *
-	 * @retval >=0		The number of samples from \p smps which have been written into \p buf.
-	 * @retval <0		Something went wrong.
+	 * @return		The number of bytes which have been written to \p buf.
 	 */
-	int print(char *buf, size_t len, size_t *wbytes, const struct sample *smps[], unsigned cnt) = 0;
-
-	int print(FILE *f, struct sample *smps[], unsigned cnt);
-
-	int scan(FILE *f, struct sample *smps[], unsigned cnt);
+	size_t print(char *buf, size_t len, const struct sample *smps[], unsigned cnt) = 0;
 };
 
 class LineFormat : public Format {
@@ -104,12 +86,13 @@ protected:
 	char separator;				/**< Column separator (used by csv and villas.human formats only) */
 
 public:
-	/** Print a header. */
-	virtual void header(const struct sample *smp);
+	/** Format header */
+	virtual size_t header(char *buf, size_t len)
+	{ }
 
-	/** Print a footer. */
-	virtual void footer();
-
+	/** Format footer */
+	virtual size_t footer(char *buf, size_t len)
+	{ };
 };
 
 class FormatFactory : public plugin::Plugin {

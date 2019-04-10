@@ -32,7 +32,6 @@
 
 #include <villas/timing.h>
 #include <villas/sample.h>
-#include <villas/io.h>
 #include <villas/hook.hpp>
 #include <villas/utils.hpp>
 #include <villas/pool.h>

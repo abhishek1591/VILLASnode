@@ -43,8 +43,8 @@ extern "C" {
 #include <villas/nodes/socket.hpp>
 #include <villas/utils.hpp>
 #include <villas/stats.h>
-#include <villas/hook.h>
-#include <villas/format_type.h>
+#include <villas/hook.hpp>
+#include <villas/format.hpp>
 #include <villas/super_node.hpp>
 
 #ifdef WITH_NETEM

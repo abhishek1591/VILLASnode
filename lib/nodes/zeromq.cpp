@@ -32,7 +32,7 @@
 #include <villas/utils.hpp>
 #include <villas/queue.h>
 #include <villas/plugin.h>
-#include <villas/format_type.h>
+#include <villas/format.hpp>
 
 static void *context;
 

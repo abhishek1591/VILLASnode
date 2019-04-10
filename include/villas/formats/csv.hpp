@@ -1,4 +1,4 @@
-/** The VILLASframework sample format
+/** Comma-separated values.
  *
  * @file
  * @author Steffen Vogel <stvogel@eonerc.rwth-aachen.de>
@@ -23,13 +23,25 @@
 
 #pragma once
 
-#include <stdio.h>
+#include <villas/format.hpp>
 
-/* Forward declarations */
-struct io;
-struct sample;
+namespace villas {
+namespace node {
+namespace formats {
 
-void villas_human_header(struct io *io, const struct sample *smp);
+class CSV : public LineFormat {
 
-int villas_human_print(struct io *io, struct sample *smps[], unsigned cnt);
-int villas_human_scan(struct io *io, struct sample *smps[], unsigned cnt);
+protected:
+	size_t print(char *buf, size_t len, const struct sample *smp);
+	size_t scan(const char *buf, size_t len, struct sample *smp);
+
+public:
+	size_t print(char *buf, size_t len, const struct sample *smps[], unsigned cnt);
+	size_t scan(const char *buf, size_t len, struct sample *smps[], unsigned cnt);
+
+	size_t header(char *buf, size_t len);
+};
+
+} // namespace formats
+} // namespace node
+} // namespace villas

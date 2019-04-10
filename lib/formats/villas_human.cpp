@@ -24,15 +24,15 @@
 #include <inttypes.h>
 #include <string.h>
 
-#include <villas/io.h>
-#include <villas/plugin.h>
 #include <villas/utils.hpp>
 #include <villas/timing.h>
 #include <villas/sample.h>
 #include <villas/signal.h>
-#include <villas/formats/villas_human.h>
+#include <villas/formats/villas_human.hpp>
 
-static size_t villas_human_sprint_single(struct io *io, char *buf, size_t len, const struct sample *smp)
+using namespace villas::node::formats;
+
+size_t VillasHuman::printSingle(char *buf, size_t len, const struct sample *smp)
 {
 	size_t off = 0;
 	struct signal *sig;
@@ -72,7 +72,7 @@ static size_t villas_human_sprint_single(struct io *io, char *buf, size_t len, c
 	return off;
 }
 
-static size_t villas_human_sscan_single(struct io *io, const char *buf, size_t len, struct sample *smp)
+size_t VillasHuman::scanSingle(const char *buf, size_t len, struct sample *smp)
 {
 	int ret;
 	char *end;
@@ -147,7 +147,7 @@ static size_t villas_human_sscan_single(struct io *io, const char *buf, size_t l
 			goto out;
 	}
 
-out:	if (*end == io->delimiter)
+out:	if (*end == delimiter)
 		end++;
 
 	smp->length = i;
@@ -164,13 +164,13 @@ out:	if (*end == io->delimiter)
 	return end - buf;
 }
 
-int villas_human_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt)
+int VillasHuman::print(char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt)
 {
 	unsigned i;
 	size_t off = 0;
 
 	for (i = 0; i < cnt && off < len; i++)
-		off += villas_human_sprint_single(io, buf + off, len - off, smps[i]);
+		off += printSingle(buf + off, len - off, smps[i]);
 
 	if (wbytes)
 		*wbytes = off;
@@ -178,13 +178,13 @@ int villas_human_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, st
 	return i;
 }
 
-int villas_human_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt)
+int VillasHuman::scan(const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt)
 {
 	unsigned i;
 	size_t off = 0;
 
 	for (i = 0; i < cnt && off < len; i++)
-		off += villas_human_sscan_single(io, buf + off, len - off, smps[i]);
+		off += scanSingle(buf + off, len - off, smps[i]);
 
 	if (rbytes)
 		*rbytes = off;
@@ -192,58 +192,43 @@ int villas_human_sscan(struct io *io, const char *buf, size_t len, size_t *rbyte
 	return i;
 }
 
-void villas_human_header(struct io *io, const struct sample *smp)
+void VillasHuman::header(char *buf, size_t len, size_t *wbytes)
 {
-	FILE *f = io_stream_output(io);
+	pos += snprintf(buf + pos, len - pos, "# ");
 
-	fprintf(f, "# ");
+	if (flags & SAMPLE_HAS_TS_ORIGIN)
+		pos += snprintf(buf + pos, len - pos, "seconds.nanoseconds");
 
-	if (io->flags & SAMPLE_HAS_TS_ORIGIN)
-		fprintf(f, "seconds.nanoseconds");
+	if (flags & SAMPLE_HAS_OFFSET)
+		pos += snprintf(buf + pos, len - pos, "+offset");
 
-	if (io->flags & SAMPLE_HAS_OFFSET)
-		fprintf(f, "+offset");
+	if (flags & SAMPLE_HAS_SEQUENCE)
+		pos += snprintf(buf + pos, len - pos, "(sequence)");
 
-	if (io->flags & SAMPLE_HAS_SEQUENCE)
-		fprintf(f, "(sequence)");
-
-	if (io->flags & SAMPLE_HAS_DATA) {
-		for (unsigned i = 0; i < MIN(smp->length, vlist_length(smp->signals)); i++) {
-			struct signal *sig = (struct signal *) vlist_at(smp->signals, i);
+	if (flags & SAMPLE_HAS_DATA) {
+		for (unsigned i = 0; i < MIN(smp->length, vlist_length(signals)); i++) {
+			struct signal *sig = (struct signal *) vlist_at(signals, i);
 
 			if (sig->name)
-				fprintf(f, "%c%s", io->separator, sig->name);
+				pos += snprintf(buf + pos, len - pos, "%c%s", separator, sig->name);
 			else
-				fprintf(f, "%csignal%d", io->separator, i);
+				pos += snprintf(buf + pos, len - pos, "%csignal%d", separator, i);
 
 			if (sig->unit)
-				fprintf(f, "[%s]", sig->unit);
+				pos += snprintf(buf + pos, len - pos, "[%s]", sig->unit);
 		}
 	}
 
-	fprintf(f, "%c", io->delimiter);
+	pos += snprintf(buf + pos, len - pos, "%c", delimiter);
+
+	if (wbytes)
+		*wbytes = pos;
 }
 
-static struct plugin p;
-__attribute__((constructor(110))) static void UNIQUE(__ctor)() {
-        if (plugins.state == STATE_DESTROYED)
-	                vlist_init(&plugins);
-
-	p.name = "villas.human";
-	p.description = "VILLAS human readable format";
-	p.type = PLUGIN_TYPE_FORMAT;
-	p.format.header = villas_human_header;
-	p.format.sprint	= villas_human_sprint;
-	p.format.sscan	= villas_human_sscan;
-	p.format.size	= 0;
-	p.format.flags	= IO_NEWLINES | SAMPLE_HAS_TS_ORIGIN | SAMPLE_HAS_SEQUENCE | SAMPLE_HAS_DATA;
-	p.format.delimiter = '\n';
-	p.format.separator = '\t';
-
-        vlist_push(&plugins, &p);
-}
-
-__attribute__((destructor(110))) static void UNIQUE(__dtor)() {
-        if (plugins.state != STATE_DESTROYED)
-                vlist_remove_all(&plugins, &p);
-}
+/* Register plugin */
+static FormatPlugin<VillasHuman> p(
+	"villas.human",
+	"VILLAS human readable format",
+	IO_NEWLINES | SAMPLE_HAS_TS_ORIGIN | SAMPLE_HAS_SEQUENCE | SAMPLE_HAS_DATA
+	'\n', '\t'
+);

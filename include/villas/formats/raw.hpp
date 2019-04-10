@@ -25,31 +25,38 @@
 
 #include <stdlib.h>
 
+#include <villas/format.hpp>
+
 /* float128 is currently not yet supported as htole128() functions a missing */
-#if 0 && defined(__GNUC__) && defined(__linux__)
+#if defined(__GNUC__) && defined(__linux__)
   #define HAS_128BIT
 #endif
 
-/* Forward declarations */
-struct sample;
+namespace villas {
+namespace node {
+namespace formats {
 
-enum raw_flags {
-	/** Treat the first three values as: sequenceno, seconds, nanoseconds */
-	RAW_FAKE_HEADER	= (1 << 16),
-	RAW_BIG_ENDIAN	= (1 << 17),	/**< Encode data in big-endian byte order */
+class Raw : public Format {
 
-	RAW_BITS_8	= (3 << 24),	/**< Pack each value as a byte. */
-	RAW_BITS_16	= (4 << 24),	/**< Pack each value as a word. */
-	RAW_BITS_32	= (5 << 24),	/**< Pack each value as a double word. */
-	RAW_BITS_64	= (6 << 24), 	/**< Pack each value as a quad word. */
-#ifdef HAS_128BIT
-	RAW_128		= (7 << 24)  /**< Pack each value as a double quad word. */
-#endif
+public:
+	enum flags {
+		/** Treat the first three values as: sequenceno, seconds, nanoseconds */
+		FAKE_HEADER	= (1 << 16),
+		BIG_ENDIAN	= (1 << 17),	/**< Encode data in big-endian byte order */
+
+		BITS_8		= (3 << 24),	/**< Pack each value as a byte. */
+		BITS_16		= (4 << 24),	/**< Pack each value as a word. */
+		BITS_32		= (5 << 24),	/**< Pack each value as a double word. */
+		BITS_64		= (6 << 24), 	/**< Pack each value as a quad word. */
+	#ifdef HAS_128BIT
+		128		= (7 << 24)  /**< Pack each value as a double quad word. */
+	#endif
+	};
+
+	size_t print(char *buf, size_t len, const struct sample *smps[], unsigned cnt);
+	size_t scan(const char *buf, size_t len, struct sample *smps[], unsigned cnt);
 };
 
-/** Copy / read struct msg's from buffer \p buf to / fram samples \p smps. */
-int raw_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt);
-
-/** Read struct sample's from buffer \p buf into samples \p smps. */
-int raw_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt);
-
+} // namespace formats
+} // namespace node
+} // namespace villas

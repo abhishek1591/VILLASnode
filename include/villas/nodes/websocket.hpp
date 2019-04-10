@@ -34,7 +34,6 @@
 #include <villas/queue_signalled.h>
 #include <villas/common.h>
 #include <villas/buffer.h>
-#include <villas/io.h>
 #include <villas/node/config.h>
 
 #define DEFAULT_WEBSOCKET_QUEUE_LENGTH	(DEFAULT_QUEUE_LENGTH * 64)
@@ -70,11 +69,12 @@ struct websocket_connection {
 
 	struct lws *wsi;
 	struct node *node;
-	struct io io;
 	struct queue queue;			/**< For samples which are sent to the WebSocket */
 
-	struct format_type *format;
 	struct websocket_destination *destination;
+
+	FormatFactory format_factory;
+	Format *format;
 
 	struct {
 		struct buffer recv;		/**< A buffer for reconstructing fragmented messags. */

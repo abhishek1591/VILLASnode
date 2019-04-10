@@ -1,4 +1,4 @@
-/** Read / write sample data in different formats.
+/** JSON serializtion sample data.
  *
  * @author Steffen Vogel <stvogel@eonerc.rwth-aachen.de>
  * @copyright 2014-2019, Institute for Automation of Complex Power Systems, EONERC
@@ -20,24 +20,36 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *********************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
+#pragma once
 
-#include <villas/plugin.h>
-#include <villas/format_type.h>
+#include <jansson.h>
 
-struct format_type * format_type_lookup(const char *name)
-{
-	struct plugin *p;
+#include <villas/format.hpp>
 
-	p = plugin_lookup(PLUGIN_TYPE_FORMAT, name);
-	if (!p)
-		return nullptr;
+namespace villas {
+namespace node {
+namespace formats {
 
-	return &p->format;
-}
+class JSON : public Format {
 
-const char * format_type_name(struct format_type *vt)
-{
-	return plugin_name(vt);
-}
+protected:
+	enum signal_type detectFormat(json_t *val);
+
+	json_t * packTimestamps(struct sample *smp);
+	int unpackTimestamps(json_t *json_ts, struct sample *smp);
+
+	int packSample(json_t **j, struct sample *smp);
+	int packSamples(json_t **j, struct sample *smps[], unsigned cnt);
+
+	int unpackSample(json_t *json_smp, struct sample *smp);
+	int unpackSamples(json_t *json_smps, struct sample *smps[], unsigned cnt);
+
+public:
+	size_t print(char *buf, size_t len, const struct sample *smps[], unsigned cnt);
+	size_t scan(const char *buf, size_t len, struct sample *smps[], unsigned cnt);
+};
+
+} // namespace formats
+} // namespace node
+} // namespace villas
+

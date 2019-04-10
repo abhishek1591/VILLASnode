@@ -26,7 +26,6 @@
 #include <villas/common.h>
 #include <villas/utils.hpp>
 #include <villas/node_type.h>
-#include <villas/format_type.h>
 
 extern struct vlist plugins;
 
@@ -42,7 +41,6 @@ struct plugin {
 	enum plugin_type type;
 
 	union {
-		struct format_type	format;
 		struct node_type	node;
 	};
 };

@@ -31,7 +31,6 @@
 
 #include <villas/node.h>
 #include <villas/pool.h>
-#include <villas/io.h>
 #include <villas/queue_signalled.h>
 
 /* Forward declarations */
@@ -62,8 +61,8 @@ struct mqtt {
 		char *keyfile;	/**< SSL private key. */
 	} ssl;
 
-	struct format_type *format;
-	struct io io;
+	FormatFactory format_factory;
+	Format *format;
 };
 
 /** @see node_type::reverse */

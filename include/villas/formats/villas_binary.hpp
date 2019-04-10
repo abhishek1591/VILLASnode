@@ -1,4 +1,4 @@
-/** Read / write sample data in different formats.
+/** Message related functions
  *
  * @file
  * @author Steffen Vogel <stvogel@eonerc.rwth-aachen.de>
@@ -23,12 +23,23 @@
 
 #pragma once
 
-#include <stdio.h>
+#include <villas/format.hpp>
 
-/* Forward declarations */
-struct sample;
-struct io;
+namespace villas {
+namespace node {
+namespace formats {
 
-struct format_type * format_type_lookup(const char *name);
+class VillasBinary : public Format {
 
-const char * format_type_name(struct format_type *vt);
+public:
+	enum flags {
+		WEB	= (1 << 16) /**< Use webmsg format (everying little endian) */
+	};
+
+	size_t print(char *buf, size_t len, const struct sample *smps[], unsigned cnt);
+	size_t scan(const char *buf, size_t len, struct sample *smps[], unsigned cnt);
+};
+
+} // namespace formats
+} // namespace node
+} // namespace villas

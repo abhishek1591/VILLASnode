@@ -28,7 +28,7 @@
 
 #include <villas/nodes/socket.hpp>
 #include <villas/utils.hpp>
-#include <villas/format_type.h>
+#include <villas/format.hpp>
 #include <villas/sample.h>
 #include <villas/queue.h>
 #include <villas/plugin.h>

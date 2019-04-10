@@ -24,7 +24,7 @@
 #include <ctype.h>
 
 #include <villas/node/config.h>
-#include <villas/hook.h>
+#include <villas/hook.hpp>
 #include <villas/hook_list.hpp>
 #include <villas/sample.h>
 #include <villas/node.h>

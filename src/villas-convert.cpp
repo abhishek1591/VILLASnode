@@ -28,7 +28,6 @@
 
 #include <villas/utils.hpp>
 #include <villas/log.hpp>
-#include <villas/io.h>
 #include <villas/sample.h>
 #include <villas/plugin.h>
 #include <villas/exceptions.hpp>

@@ -29,7 +29,6 @@
 #include <villas/hook.hpp>
 #include <villas/path.h>
 #include <villas/sample.h>
-#include <villas/io.h>
 #include <villas/plugin.h>
 
 namespace villas {

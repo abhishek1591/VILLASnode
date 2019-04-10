@@ -30,7 +30,6 @@
 #include <iostream>
 #include <atomic>
 
-#include <villas/io.h>
 #include <villas/utils.hpp>
 #include <villas/colors.hpp>
 #include <villas/exceptions.hpp>

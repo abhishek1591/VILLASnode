@@ -22,15 +22,15 @@
 
 #include <string.h>
 
-#include <villas/io.h>
-#include <villas/formats/villas_binary.h>
+#include <villas/formats/villas_binary.hpp>
 #include <villas/formats/msg.h>
 #include <villas/formats/msg_format.h>
 #include <villas/sample.h>
 #include <villas/utils.hpp>
-#include <villas/plugin.h>
 
-int villas_binary_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt)
+using namespace villas::node::formats;
+
+int VillasBinary::print(char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt)
 {
 	int ret;
 	unsigned i = 0;
@@ -47,7 +47,7 @@ int villas_binary_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, s
 		if (ret)
 			return ret;
 
-		if (io->flags & VILLAS_BINARY_WEB) {
+		if (flags & VILLAS_BINARY_WEB) {
 			/** @todo convert to little endian */
 		}
 		else
@@ -62,7 +62,7 @@ int villas_binary_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, s
 	return i;
 }
 
-int villas_binary_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt)
+int VillasBinary::scan(const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt)
 {
 	int ret, values;
 	unsigned i = 0;
@@ -77,7 +77,7 @@ int villas_binary_sscan(struct io *io, const char *buf, size_t len, size_t *rbyt
 		struct msg *msg = (struct msg *) ptr;
 		struct sample *smp = smps[i];
 
-		smp->signals = io->signals;
+		smp->signals = signals;
 
 		/* Complete buffer has been parsed */
 		if (ptr == buf + len)
@@ -89,7 +89,7 @@ int villas_binary_sscan(struct io *io, const char *buf, size_t len, size_t *rbyt
 			break;
 		}
 
-		values = (io->flags & VILLAS_BINARY_WEB) ? msg->length : ntohs(msg->length);
+		values = (flags & VILLAS_BINARY_WEB) ? msg->length : ntohs(msg->length);
 
 		/* Check if remainder of message is in buffer boundaries */
 		if (ptr + MSG_LEN(values) > buf + len) {
@@ -97,13 +97,13 @@ int villas_binary_sscan(struct io *io, const char *buf, size_t len, size_t *rbyt
 			break;
 		}
 
-		if (io->flags & VILLAS_BINARY_WEB) {
+		if (flags & VILLAS_BINARY_WEB) {
 			/** @todo convert from little endian */
 		}
 		else
 			msg_ntoh(msg);
 
-		ret = msg_to_sample(msg, smp, io->signals);
+		ret = msg_to_sample(msg, smp, signals);
 		if (ret) {
 			warning("Invalid msg received: reason=3, ret=%d", ret);
 			break;
@@ -118,49 +118,15 @@ int villas_binary_sscan(struct io *io, const char *buf, size_t len, size_t *rbyt
 	return i;
 }
 
-static struct plugin p1;
+/* Register plugins */
+static FormatPlugin<Json> p1(
+	"villas.binary",
+	"VILLAS binary network format",
+	IO_HAS_BINARY_PAYLOAD | SAMPLE_HAS_TS_ORIGIN | SAMPLE_HAS_SEQUENCE | SAMPLE_HAS_DATA
+);
 
-__attribute__((constructor(110))) static void UNIQUE(__ctor)() {
-	if (plugins.state == STATE_DESTROYED)
-	        vlist_init(&plugins);
-
-	p1.name = "villas.binary";
-	p1.description = "VILLAS binary network format";
-	p1.type = PLUGIN_TYPE_FORMAT;
-	p1.format.sprint	= villas_binary_sprint;
-	p1.format.sscan	= villas_binary_sscan;
-	p1.format.size	= 0;
-	p1.format.flags	= IO_HAS_BINARY_PAYLOAD |
-		          SAMPLE_HAS_TS_ORIGIN | SAMPLE_HAS_SEQUENCE | SAMPLE_HAS_DATA;
-
-	vlist_push(&plugins, &p1);
-}
-
-__attribute__((destructor(110))) static void UNIQUE(__dtor)() {
-	if (plugins.state != STATE_DESTROYED)
-		vlist_remove_all(&plugins, &p1);
-}
-/** The WebSocket node-type usually uses little endian byte order intead of network byte order */
-static struct plugin p2;
-
-
-__attribute__((constructor(110))) static void UNIQUE(__ctor)() {
-	if (plugins.state == STATE_DESTROYED)
-	        vlist_init(&plugins);
-
-	p2.name = "villas.web";
-	p2.description = "VILLAS binary network format for WebSockets";
-	p2.type = PLUGIN_TYPE_FORMAT;
-	p2.format.sprint	= villas_binary_sprint;
-	p2.format.sscan	= villas_binary_sscan;
-	p2.format.size	= 0;
-	p2.format.flags	= IO_HAS_BINARY_PAYLOAD | VILLAS_BINARY_WEB |
-		          SAMPLE_HAS_TS_ORIGIN | SAMPLE_HAS_SEQUENCE | SAMPLE_HAS_DATA;
-
-	vlist_push(&plugins, &p2);
-}
-
-__attribute__((destructor(110))) static void UNIQUE(__dtor)() {
-	if (plugins.state != STATE_DESTROYED)
-		vlist_remove_all(&plugins, &p2);
-}
+static FormatPlugin<Json> p2(
+	"villas.web",
+	"VILLAS binary network format for WebSockets",
+	IO_HAS_BINARY_PAYLOAD | VILLAS_BINARY_WEB | SAMPLE_HAS_TS_ORIGIN | SAMPLE_HAS_SEQUENCE | SAMPLE_HAS_DATA
+);

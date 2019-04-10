@@ -22,23 +22,21 @@
 
 #include <string.h>
 
-#include <villas/plugin.h>
 #include <villas/sample.h>
 #include <villas/node.h>
 #include <villas/signal.h>
 #include <villas/compat.h>
 #include <villas/timing.h>
-#include <villas/io.h>
-#include <villas/formats/json.h>
+#include <villas/formats/json_reserve.hpp>
 
-#define JSON_RESERVE_INTEGER_TARGET 1
+using namespace villas::node::formats;
 
-static int json_reserve_pack_sample(struct io *io, json_t **j, struct sample *smp)
+int JsonReserve::packSample(json_t **j, struct sample *smp)
 {
 	json_error_t err;
 	json_t *json_data, *json_name, *json_unit, *json_value;
-	json_t *json_created = NULL;
-	json_t *json_sequence = NULL;
+	json_t *json_created = nullptr;
+	json_t *json_sequence = nullptr;
 
 	if (smp->flags & SAMPLE_HAS_TS_ORIGIN)
 		json_created = json_integer(time_to_double(&smp->ts.origin) * 1e3);
@@ -67,7 +65,7 @@ static int json_reserve_pack_sample(struct io *io, json_t **j, struct sample *sm
 		if (sig->unit)
 			json_unit = json_string(sig->unit);
 		else
-			json_unit = NULL;
+			json_unit = nullptr;
 
 		json_value = json_pack_ex(&err, 0, "{ s: o, s: f }",
 			"name", json_name,
@@ -94,41 +92,22 @@ static int json_reserve_pack_sample(struct io *io, json_t **j, struct sample *sm
 	*j = json_pack_ex(&err, 0, "{ s: o }",
 		"measurements", json_data
 	);
-	if (*j == NULL)
+	if (*j == nullptr)
 		return -1;
-#if 0
-#ifdef JSON_RESERVE_INTEGER_TARGET
-	if (io->out.node) {
-		char *endptr;
-		char *id_str = strrchr(io->out.node->name, '_');
-		if (!id_str)
-			return -1;
-
-		int id = strtoul(id_str+1, &endptr, 10);
-		if (endptr[0] != 0)
-			return -1;
-
-		json_object_set_new(*j, "target", json_integer(id));
-	}
-#else
-	if (io->out.node)
-		json_object_set_new(*j, "target", json_string(io->out.node->name));
-#endif
-#endif
 
 	return 0;
 }
 
-static int json_reserve_unpack_sample(struct io *io, json_t *json_smp, struct sample *smp)
+int JsonReserve::unpackSample(json_t *j, struct sample *smp)
 {
 	int ret, idx;
 	double created = -1;
 	json_error_t err;
-	json_t *json_value, *json_data = NULL;
-	json_t *json_origin = NULL, *json_target = NULL;
+	json_t *json_value, *json_data = nullptr;
+	json_t *json_origin = nullptr, *json_target = nullptr;
 	size_t i;
 
-	ret = json_unpack_ex(json_smp, &err, 0, "{ s?: o, s?: o, s?: o, s?: o }",
+	ret = json_unpack_ex(j, &err, 0, "{ s?: o, s?: o, s?: o, s?: o }",
 		"origin", &json_origin,
 		"target", &json_target,
 		"measurements", &json_data,
@@ -137,35 +116,6 @@ static int json_reserve_unpack_sample(struct io *io, json_t *json_smp, struct sa
 	if (ret)
 		return -1;
 
-#if 0
-#ifdef JSON_RESERVE_INTEGER_TARGET
-	if (json_target && io->in.node) {
-		if (!json_is_integer(json_target))
-			return -1;
-
-		char *endptr;
-		char *id_str = strrchr(io->in.node->name, '_');
-		if (!id_str)
-			return -1;
-
-		int id = strtoul(id_str+1, &endptr, 10);
-		if (endptr[0] != 0)
-			return -1;
-
-		if (id != json_integer_value(json_target))
-			return 0;
-	}
-#else
-	if (json_target && io->in.node) {
-		const char *target = json_string_value(json_target);
-		if (!target)
-			return -1;
-
-		if (strcmp(target, io->in.node->name))
-			return 0;
-	}
-#endif
-#endif
 	if (!json_data || !json_is_array(json_data))
 		return -1;
 
@@ -173,7 +123,7 @@ static int json_reserve_unpack_sample(struct io *io, json_t *json_smp, struct sa
 	smp->length = 0;
 
 	json_array_foreach(json_data, i, json_value) {
-		const char *name, *unit = NULL;
+		const char *name, *unit = nullptr;
 		double value;
 
 		ret = json_unpack_ex(json_value, &err, 0, "{ s: s, s?: s, s: F, s?: F }",
@@ -187,12 +137,12 @@ static int json_reserve_unpack_sample(struct io *io, json_t *json_smp, struct sa
 
 		struct signal *sig;
 
-		sig = (struct signal *) vlist_lookup(io->signals, name);
+		sig = (struct signal *) vlist_lookup(signals, name);
 		if (sig) {
 			if (!sig->enabled)
 				continue;
 
-			idx = vlist_index(io->signals, sig);
+			idx = vlist_index(signals, sig);
 		}
 		else {
 			ret = sscanf(name, "signal_%d", &idx);
@@ -222,126 +172,8 @@ static int json_reserve_unpack_sample(struct io *io, json_t *json_smp, struct sa
 	return smp->length > 0 ? 1 : 0;
 }
 
-/*
- * Note: The following functions are the same as io/json.c !!!
- */
-
-int json_reserve_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt)
-{
-	int ret;
-	json_t *json;
-	size_t wr;
-
-	assert(cnt == 1);
-
-	ret = json_reserve_pack_sample(io, &json, smps[0]);
-	if (ret < 0)
-		return ret;
-
-	wr = json_dumpb(json, buf, len, 0);
-
-	json_decref(json);
-
-	if (wbytes)
-		*wbytes = wr;
-
-	return ret;
-}
-
-int json_reserve_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt)
-{
-	int ret;
-	json_t *json;
-	json_error_t err;
-
-	assert(cnt == 1);
-
-	json = json_loadb(buf, len, 0, &err);
-	if (!json)
-		return -1;
-
-	ret = json_reserve_unpack_sample(io, json, smps[0]);
-
-	json_decref(json);
-
-	if (ret < 0)
-		return ret;
-
-	if (rbytes)
-		*rbytes = err.position;
-
-	return ret;
-}
-
-int json_reserve_print(struct io *io, struct sample *smps[], unsigned cnt)
-{
-	int ret;
-	unsigned i;
-	json_t *json;
-
-	FILE *f = io_stream_output(io);
-
-	for (i = 0; i < cnt; i++) {
-		ret = json_reserve_pack_sample(io, &json, smps[i]);
-		if (ret)
-			return ret;
-
-		ret = json_dumpf(json, f, 0);
-		fputc('\n', f);
-
-		json_decref(json);
-
-		if (ret)
-			return ret;
-	}
-
-	return i;
-}
-
-int json_reserve_scan(struct io *io, struct sample *smps[], unsigned cnt)
-{
-	int ret;
-	unsigned i;
-	json_t *json;
-	json_error_t err;
-
-	FILE *f = io_stream_input(io);
-
-	for (i = 0; i < cnt; i++) {
-skip:		json = json_loadf(f, JSON_DISABLE_EOF_CHECK, &err);
-		if (!json)
-			break;
-
-		ret = json_reserve_unpack_sample(io, json, smps[i]);
-
-		json_decref(json);
-
-		if (ret < 0)
-			goto skip;
-	}
-
-	return i;
-}
-
-static struct plugin p;
-
-__attribute__((constructor(110))) static void UNIQUE(__ctor)() {
-	if (plugins.state == STATE_DESTROYED)
-		vlist_init(&plugins);
-
-	p.name = "json.reserve";
-	p.description = "RESERVE JSON format";
-	p.type = PLUGIN_TYPE_FORMAT;
-	p.format.print	= json_reserve_print;
-	p.format.scan	= json_reserve_scan;
-	p.format.sprint	= json_reserve_sprint;
-	p.format.sscan	= json_reserve_sscan;
-	p.format.size = 0;
-       
-	vlist_push(&plugins, &p);
-}
-
-__attribute__((destructor(110))) static void UNIQUE(__dtor)() {
-	if (plugins.state != STATE_DESTROYED)
-		vlist_remove_all(&plugins, &p);
-}
+/* Register plugin */
+static FormatPlugin<JsonReserve> p(
+	"json.reserve",
+	"RESERVE JSON format"
+);

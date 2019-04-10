@@ -64,7 +64,6 @@ set(LIB_SRC
     super_node.cpp
     socket_addr.cpp
     io.cpp
-    format_type.cpp
 )
 
 if(WITH_NODE_INFINIBAND)

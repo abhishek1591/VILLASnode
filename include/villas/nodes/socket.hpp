@@ -32,10 +32,6 @@
 #include <villas/node/config.h>
 #include <villas/node.h>
 #include <villas/socket_addr.h>
-#include <villas/io.h>
-
-/* Forward declarations */
-struct format_type;
 
 /** The maximum length of a packet which contains stuct msg. */
 #define SOCKET_INITIAL_BUFFER_LEN (64*1024)
@@ -46,8 +42,8 @@ struct socket {
 
 	enum socket_layer layer;	/**< The OSI / IP layer which should be used for this socket */
 
-	struct format_type *format;
-	struct io io;
+	FormatFactory format_factory;
+	Format *format;
 
 	/* Multicast options */
 	struct multicast {

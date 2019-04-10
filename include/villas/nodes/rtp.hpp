@@ -37,7 +37,6 @@
 #include <villas/node.h>
 #include <villas/list.h>
 #include <villas/log.hpp>
-#include <villas/io.h>
 #include <villas/queue_signalled.h>
 #include <villas/hooks/limit_rate.hpp>
 #include <villas/hooks/decimate.hpp>
@@ -47,9 +46,6 @@ extern "C" {
   #include <re/re_sa.h>
   #include <re/re_rtp.h>
 }
-
-/* Forward declarations */
-struct format_type;
 
 /** The maximum length of a packet which contains rtp data. */
 #define RTP_INITIAL_BUFFER_LEN 1500
@@ -71,8 +67,8 @@ struct rtp {
 		struct sa saddr_rtcp;	/**< Local/Remote address of the RTCP socket */
 	} in, out;
 
-	struct format_type *format;
-	struct io io;
+	FormatFactory format_factory;
+	Format *format;
 
 	struct {
 		int enabled;

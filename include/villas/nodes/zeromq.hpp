@@ -33,23 +33,20 @@
 #include <jansson.h>
 
 #include <villas/list.h>
-#include <villas/io.h>
 
 #if ZMQ_BUILD_DRAFT_API && (ZMQ_VERSION_MAJOR > 4 || (ZMQ_VERSION_MAJOR == 4 && ZMQ_VERSION_MINOR >= 2))
   #define ZMQ_BUILD_DISH 1
 #endif
 
 /* Forward declarations */
-struct format_type;
 struct node;
 struct sample;
 
 struct zeromq {
 	int ipv6;
 
-
-	struct format_type *format;
-	struct io io;
+	FormatFactory format_factory;
+	Format *format;
 
 	struct {
 		int enabled;

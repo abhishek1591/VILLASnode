@@ -29,15 +29,14 @@
 
 #pragma once
 
-#include <villas/io.h>
 #include <villas/node.h>
 #include <villas/task.h>
 
 #define FILE_MAX_PATHLEN	512
 
 struct file {
-	struct io io;			/**< Format and file IO */
-	struct format_type *format;
+	FormatFactory format_factory;
+	Format *format;
 
 	char *uri_tmpl;			/**< Format string for file name. */
 	char *uri;			/**< Real file name. */

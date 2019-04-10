@@ -1,6 +1,5 @@
-/** Message related functions
+/** JSON serializtion for RESERVE project.
  *
- * @file
  * @author Steffen Vogel <stvogel@eonerc.rwth-aachen.de>
  * @copyright 2014-2019, Institute for Automation of Complex Power Systems, EONERC
  * @license GNU General Public License (version 3)
@@ -23,19 +22,19 @@
 
 #pragma once
 
-#include <stdlib.h>
+#include <villas/formats/json.hpp>
 
-/* Forward declarations. */
-struct sample;
-struct msg;
-struct io;
+namespace villas {
+namespace node {
+namespace formats {
 
-enum villas_binary_flags {
-	VILLAS_BINARY_WEB	= (1 << 16) /**< Use webmsg format (everying little endian) */
+class JSONReserve : public Json {
+
+protected:
+	int packSample(json_t **j, struct sample *smp);
+	int unpackSample(json_t *j, struct sample *smp);
 };
 
-/** Copy / read struct msg's from buffer \p buf to / fram samples \p smps. */
-int villas_binary_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt);
-
-/** Read struct sample's from buffer \p buf into samples \p smps. */
-int villas_binary_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt);
+} // namespace formats
+} // namespace node
+} // namespace villas

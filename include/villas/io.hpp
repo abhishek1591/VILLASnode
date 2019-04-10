@@ -35,45 +35,69 @@ protected:
 
 	Format *format;
 
+	int printLines(struct sample *smps[], unsigned cnt);
+	int scanLines(struct sample *smps[], unsigned cnt);
+
 public:
-	Io(const char *format)
+	Io(const std::string &uri, const std::string &format);
 
-	Io(Format *f) :
-		format(f)
-	{ }
+	virtual void open();
+	virtual void close();
+	virtual void print(struct sample *smps[], unsigned cnt);
+	virtual void scan(struct sample *smps[], unsigned cnt);
+	virtual bool eof();
+	virtual void rewind();
+	virtual void flush();
 
-	int open(const char *uri);
+	virtual int getFiledescriptor();
+	virtual FILE * getInputStream();
+	virtual FILE * getOutputStream();
 
-	int close();
-
-	int print(struct sample *smps[], unsigned cnt);
-
-	int scan(struct sample *smps[], unsigned cnt);
-
-	int eof();
-
-	void rewind();
-
-	int flush();
-
-	int fd();
-
-	FILE * getInputStream();
-	FILE * getOutputStream();
+	static create(const std::string &uri);
 };
 
-class StdIo : public Io {
+class StandardIo : public Io {
 
 protected:
-	FILE *in, *out;
+	struct {
+		FILE *in;
+		FILE *out;
+	} stream;
 
+public:
+	virtual void open();
+	virtual void close();
+	virtual void print(struct sample *smps[], unsigned cnt);
+	virtual void scan(struct sample *smps[], unsigned cnt);
+	virtual bool eof();
+	virtual void rewind();
+	virtual void flush();
+
+	virtual int getFiledescriptor();
+	virtual FILE * getInputStream();
+	virtual FILE * getOutputStream();
 };
 
-class AdvIo : public Io {
+class AdvancedIo : public Io {
 
 protected:
-	AFILE *in, *out;
+	struct {
+		AFILE *in;
+		AFILE *out;
+	} stream;
 
+public:
+	virtual void open();
+	virtual void close();
+	virtual void print(struct sample *smps[], unsigned cnt);
+	virtual void scan(struct sample *smps[], unsigned cnt);
+	virtual bool eof();
+	virtual void rewind();
+	virtual void flush();
+
+	virtual int getFiledescriptor();
+	virtual FILE * getInputStream();
+	virtual FILE * getOutputStream();
 };
 
 } // namespace node

@@ -1,5 +1,6 @@
-/** JSON serializtion for RESERVE project.
+/** Protobuf IO format
  *
+ * @file
  * @author Steffen Vogel <stvogel@eonerc.rwth-aachen.de>
  * @copyright 2014-2019, Institute for Automation of Complex Power Systems, EONERC
  * @license GNU General Public License (version 3)
@@ -22,14 +23,25 @@
 
 #pragma once
 
-#include <jansson.h>
+#include <villas/signal.h>
+#include <villas/format.hpp>
 
-/* Forward declarations */
-struct sample;
-struct io;
+namespace villas {
+namespace node {
+namespace formats {
 
-int json_reserve_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt);
-int json_reserve_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt);
+class Protobuf : public Format {
 
-int json_reserve_print(struct io *io, struct sample *smps[], unsigned cnt);
-int json_reserve_scan(struct io *io, struct sample *smps[], unsigned cnt);
+protected:
+	enum signal_type detectFormat(Villas__Node__Value *val);
+
+public:
+	size_t print(char *buf, size_t len, const struct sample *smps[], unsigned cnt);
+	size_t scan(const char *buf, size_t len, struct sample *smps[], unsigned cnt);
+};
+
+} // namespace formats
+} // namespace node
+} // namespace villas
+
+

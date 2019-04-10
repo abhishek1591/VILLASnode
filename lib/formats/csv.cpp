@@ -24,56 +24,56 @@
 #include <inttypes.h>
 #include <string.h>
 
-#include <villas/io.h>
-#include <villas/formats/csv.h>
-#include <villas/plugin.h>
+#include <villas/formats/csv.hpp>
 #include <villas/sample.h>
 #include <villas/signal.h>
 #include <villas/timing.h>
 
-static size_t csv_sprint_single(struct io *io, char *buf, size_t len, const struct sample *smp)
+using namespace villas::node::formats;
+
+size_t Csv::printSingle(char *buf, size_t len, const struct sample *smp)
 {
 	size_t off = 0;
 	struct signal *sig;
 
-	if (io->flags & SAMPLE_HAS_TS_ORIGIN) {
-		if (io->flags & SAMPLE_HAS_TS_ORIGIN)
-			off += snprintf(buf + off, len - off, "%ld%c%09ld", smp->ts.origin.tv_sec, io->separator, smp->ts.origin.tv_nsec);
-		else
-			off += snprintf(buf + off, len - off, "nan%cnan", io->separator);
-	}
-
-	if (io->flags & SAMPLE_HAS_OFFSET) {
+	if (flags & SAMPLE_HAS_TS_ORIGIN) {
 		if ((smp->flags & SAMPLE_HAS_TS_RECEIVED) && (smp->flags & SAMPLE_HAS_TS_RECEIVED))
-			off += snprintf(buf + off, len - off, "%c%.09f", io->separator, time_delta(&smp->ts.origin, &smp->ts.received));
+			off += snprintf(buf + off, len - off, "%ld%c%09ld", smp->ts.origin.tv_sec, separator, smp->ts.origin.tv_nsec);
 		else
-			off += snprintf(buf + off, len - off, "%cnan", io->separator);
+			off += snprintf(buf + off, len - off, "nan%cnan", separator);
 	}
 
-	if (io->flags & SAMPLE_HAS_SEQUENCE) {
+	if (flags & SAMPLE_HAS_OFFSET) {
+		if (smp->flags & SAMPLE_HAS_TS_RECEIVED)
+			off += snprintf(buf + off, len - off, "%c%.09f", separator, time_delta(&smp->ts.origin, &smp->ts.received));
+		else
+			off += snprintf(buf + off, len - off, "%cnan", separator);
+	}
+
+	if (flags & SAMPLE_HAS_SEQUENCE) {
 		if (smp->flags & SAMPLE_HAS_SEQUENCE)
-			off += snprintf(buf + off, len - off, "%c%" PRIu64, io->separator, smp->sequence);
+			off += snprintf(buf + off, len - off, "%c%" PRIu64, separator, smp->sequence);
 		else
-			off += snprintf(buf + off, len - off, "%cnan", io->separator);
+			off += snprintf(buf + off, len - off, "%cnan", separator);
 	}
 
-	if (io->flags & SAMPLE_HAS_DATA) {
+	if (flags & SAMPLE_HAS_DATA) {
 		for (unsigned i = 0; i < smp->length; i++) {
 			sig = (struct signal *) vlist_at_safe(smp->signals, i);
 			if (!sig)
 				break;
 
-			off += snprintf(buf + off, len - off, "%c", io->separator);
+			off += snprintf(buf + off, len - off, "%c", separator);
 			off += signal_data_snprint(&smp->data[i], sig, buf + off, len - off);
 		}
 	}
 
-	off += snprintf(buf + off, len - off, "%c", io->delimiter);
+	off += snprintf(buf + off, len - off, "%c", delimiter);
 
 	return off;
 }
 
-static size_t csv_sscan_single(struct io *io, const char *buf, size_t len, struct sample *smp)
+size_t Csv::scanSingle(const char *buf, size_t len, struct sample *smp)
 {
 	int ret;
 	unsigned i = 0;
@@ -83,16 +83,16 @@ static size_t csv_sscan_single(struct io *io, const char *buf, size_t len, struc
 	double offset __attribute__((unused));
 
 	smp->flags = 0;
-	smp->signals = io->signals;
+	smp->signals = signals;
 
 	smp->ts.origin.tv_sec = strtoul(ptr, &end, 10);
-	if (end == ptr || *end == io->delimiter)
+	if (end == ptr || *end == delimiter)
 		goto out;
 
 	ptr = end + 1;
 
 	smp->ts.origin.tv_nsec = strtoul(ptr, &end, 10);
-	if (end == ptr || *end == io->delimiter)
+	if (end == ptr || *end == delimiter)
 		goto out;
 
 	ptr = end + 1;
@@ -100,20 +100,19 @@ static size_t csv_sscan_single(struct io *io, const char *buf, size_t len, struc
 	smp->flags |= SAMPLE_HAS_TS_ORIGIN;
 
 	offset = strtof(ptr, &end);
-	if (end == ptr || *end == io->delimiter)
+	if (end == ptr || *end == delimiter)
 		goto out;
 
 	ptr = end + 1;
 
 	smp->sequence = strtoul(ptr, &end, 10);
-	if (end == ptr || *end == io->delimiter)
+	if (end == ptr || *end == delimiter)
 		goto out;
 
 	smp->flags |= SAMPLE_HAS_SEQUENCE;
 
 	for (ptr = end + 1, i = 0; i < smp->capacity; ptr = end + 1, i++) {
-
-		if (*end == io->delimiter)
+		if (*end == delimiter)
 			goto out;
 
 		struct signal *sig = (struct signal *) vlist_at_safe(smp->signals, i);
@@ -125,7 +124,7 @@ static size_t csv_sscan_single(struct io *io, const char *buf, size_t len, struc
 			goto out;
 	}
 
-out:	if (*end == io->delimiter)
+out:	if (*end == delimiter)
 		end++;
 
 	smp->length = i;
@@ -135,7 +134,7 @@ out:	if (*end == io->delimiter)
 	return end - buf;
 }
 
-int csv_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt)
+int Csv::print(char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt)
 {
 	unsigned i;
 	size_t off = 0;
@@ -149,7 +148,7 @@ int csv_sprint(struct io *io, char *buf, size_t len, size_t *wbytes, struct samp
 	return i;
 }
 
-int csv_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt)
+int Csv::scan(const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt)
 {
 	unsigned i;
 	size_t off = 0;
@@ -163,84 +162,54 @@ int csv_sscan(struct io *io, const char *buf, size_t len, size_t *rbytes, struct
 	return i;
 }
 
-void csv_header(struct io *io, const struct sample *smp)
+void Csv::header(char *buf, size_t len, size_t *wbytes)
 {
-	FILE *f = io_stream_output(io);
+	size_t pos = 0;
 
-	fprintf(f, "# ");
-	if (io->flags & SAMPLE_HAS_TS_ORIGIN)
-		fprintf(f, "secs%cnsecs%c", io->separator, io->separator);
+	pos += snprintf(buf + pos, len - pos, f, "# ");
+	if (flags & SAMPLE_HAS_TS_ORIGIN)
+		pos += snprintf(buf + pos, len - pos, "secs%cnsecs%c", separator, separator);
 
-	if (io->flags & SAMPLE_HAS_OFFSET)
-		fprintf(f, "offset%c", io->separator);
+	if (flags & SAMPLE_HAS_OFFSET)
+		pos += snprintf(buf + pos, len - pos, "offset%c", separator);
 
-	if (io->flags & SAMPLE_HAS_SEQUENCE)
-		fprintf(f, "sequence%c", io->separator);
+	if (flags & SAMPLE_HAS_SEQUENCE)
+		pos += snprintf(buf + pos, len - pos, "sequence%c", separator);
 
-	if (io->flags & SAMPLE_HAS_DATA) {
-		for (unsigned i = 0; i < smp->length; i++) {
-			struct signal *sig = (struct signal *) vlist_at(smp->signals, i);
+	if (flags & SAMPLE_HAS_DATA) {
+		for (unsigned i = 0; i < MIN(smp->length, vlist_length(signals)); i++) {
+			struct signal *sig = (struct signal *) vlist_at(signals, i);
 
 			if (sig->name)
-				fprintf(f, "%s", sig->name);
+				pos += snprintf(buf + pos, len - pos, "%s", sig->name);
 			else
-				fprintf(f, "signal%d", i);
+				pos += snprintf(buf + pos, len - pos, "signal%d", i);
 
 			if (sig->unit)
-				fprintf(f, "[%s]", sig->unit);
+				pos += snprintf(buf + pos, len - pos, "[%s]", sig->unit);
 
 			if (i + 1 < smp->length)
-				fprintf(f, "%c", io->separator);
+				pos += snprintf(buf + pos, len - pos, "%c", separator);
 		}
 	}
 
-	fprintf(f, "%c", io->delimiter);
+	pos += snprintf(buf + pos, len - pos, "%c", delimiter);
+
+	if (wbytes)
+		*wbytes = pos;
 }
 
-static struct plugin p1;
-__attribute__((constructor(110))) static void UNIQUE(__ctor)() {
-        if (plugins.state == STATE_DESTROYED)
-	                vlist_init(&plugins);
+/* Register plugin */
+static FormatPlugin<CSV> tsv(
+	"tsv",
+	"Tabulator-separated values",
+	IO_NEWLINES | SAMPLE_HAS_TS_ORIGIN | SAMPLE_HAS_SEQUENCE | SAMPLE_HAS_DATA,
+	'\n', '\t'
+);
 
-	p1.name = "tsv";
-	p1.description = "Tabulator-separated values";
-	p1.type = PLUGIN_TYPE_FORMAT;
-	p1.format.header = csv_header;
-	p1.format.sprint = csv_sprint;
-	p1.format.sscan	= csv_sscan;
-	p1.format.size 	= 0;
-	p1.format.flags	= IO_NEWLINES |
-		          SAMPLE_HAS_TS_ORIGIN | SAMPLE_HAS_SEQUENCE | SAMPLE_HAS_DATA;
-	p1.format.separator = '\t';
-
-	vlist_push(&plugins, &p1);
-}
-
-__attribute__((destructor(110))) static void UNIQUE(__dtor)() {
-        if (plugins.state != STATE_DESTROYED)
-                vlist_remove_all(&plugins, &p1);
-}
-
-static struct plugin p2;
-__attribute__((constructor(110))) static void UNIQUE(__ctor)() {
-        if (plugins.state == STATE_DESTROYED)
-	        vlist_init(&plugins);
-
-	p2.name = "csv";
-	p2.description = "Comma-separated values";
-	p2.type = PLUGIN_TYPE_FORMAT;
-	p2.format.header = csv_header;
-	p2.format.sprint = csv_sprint;
-	p2.format.sscan	= csv_sscan;
-	p2.format.size 	= 0;
-	p2.format.flags	= IO_NEWLINES |
-			  SAMPLE_HAS_TS_ORIGIN | SAMPLE_HAS_SEQUENCE | SAMPLE_HAS_DATA;
-	p2.format.separator = ',';
-
-	vlist_push(&plugins, &p2);
-}
-
-__attribute__((destructor(110))) static void UNIQUE(__dtor)() {
-        if (plugins.state != STATE_DESTROYED)
-                vlist_remove_all(&plugins, &p2);
-}
+static FormatPlugin<CSV> csv(
+	"csv",
+	"Comma-separated values",
+	IO_NEWLINES | SAMPLE_HAS_TS_ORIGIN | SAMPLE_HAS_SEQUENCE | SAMPLE_HAS_DATA,
+	'\n', ','
+);

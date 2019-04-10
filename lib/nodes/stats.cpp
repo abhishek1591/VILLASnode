@@ -23,7 +23,7 @@
 #include <string.h>
 
 #include <villas/nodes/stats.hpp>
-#include <villas/hook.h>
+#include <villas/hook.hpp>
 #include <villas/plugin.h>
 #include <villas/stats.h>
 #include <villas/super_node.hpp>

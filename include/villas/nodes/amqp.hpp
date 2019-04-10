@@ -33,10 +33,8 @@
 
 #include <villas/node.h>
 #include <villas/list.h>
-#include <villas/io.h>
+#include <villas/format.hpp>
 
-/* Forward declarations */
-struct format_type;
 
 struct amqp_ssl_info {
 	int verify_peer;
@@ -59,8 +57,8 @@ struct amqp {
 	amqp_connection_state_t producer;
 	amqp_connection_state_t consumer;
 
-	struct format_type *format;
-	struct io io;
+	FormatFactory format_factory;
+	Format *format;
 };
 
 /** @see node_type::print */

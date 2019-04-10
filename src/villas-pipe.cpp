@@ -44,10 +44,9 @@
 #include <villas/node.h>
 #include <villas/timing.h>
 #include <villas/pool.h>
-#include <villas/io.h>
 #include <villas/kernel/rt.hpp>
 #include <villas/exceptions.hpp>
-#include <villas/format_type.h>
+#include <villas/format.hpp>
 #include <villas/nodes/websocket.hpp>
 
 using namespace villas;

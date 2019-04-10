@@ -27,7 +27,6 @@
 
 #pragma once
 
-#include <villas/hook.h>
 #include <villas/list.h>
 #include <villas/signal.h>
 #include <villas/log.hpp>
@@ -43,6 +42,21 @@ namespace villas {
 namespace node {
 
 class Hook {
+
+public:
+	enum flags {
+		BUILTIN		= (1 << 0), /**< Should we add this hook by default to every path?. */
+		PATH		= (1 << 1), /**< This hook type is used by paths. */
+		NODE_READ	= (1 << 2), /**< This hook type is used by nodes. */
+		NODE_WRITE	= (1 << 3)  /**< This hook type is used by nodes. */
+	};
+
+	enum hook_reason {
+		OK,
+		ERROR,
+		SKIP_SAMPLE,
+		STOP_PROCESSING
+	};
 
 protected:
 	Logger logger;
@@ -116,7 +130,7 @@ public:
 	/** Called whenever a sample is processed. */
 	virtual int process(sample *smp)
 	{
-		return HOOK_OK;
+		return OK;
 	};
 
 	int getPriority() const
