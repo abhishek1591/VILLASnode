@@ -54,10 +54,10 @@ extern "C" {
 	i->sequence = (uint32_t) (seq);
 
 /** The timestamp of a message in struct timespec format */
-#define MSG_TS(msg) (struct timespec) {	\
-	.tv_sec  = (msg)->ts.sec,	\
-	.tv_nsec = (msg)->ts.nsec	\
-}
+#define MSG_TS(msg, i) \
+	i.tv_sec  = (msg)->ts.sec;	\
+	i.tv_nsec = (msg)->ts.nsec;
+
 
 /** This message format is used by all clients
  *
