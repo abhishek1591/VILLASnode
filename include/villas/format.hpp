@@ -40,38 +40,12 @@ public:
 		HAS_BINARY_PAYLOAD	= (1 << 12)	/**< This IO instance en/decodes binary payloads. */
 	};
 
-	enum Mode {
-		STDIO,
-		ADVIO,
-		CUSTOM
-	};
-
 protected:
 	enum state state;
 
 	int flags;
 
-	struct Direction {
-		/** A format type can use this file handle or overwrite the
-		 * format::{open,close,eof,rewind} functions and the private
-		 * data in io::_vd.
-		 */
-		union {
-			FILE *std;
-			AFILE *adv;
-		} stream;
-
-		char *buffer;
-		size_t buflen;
-	} in, out;
-
 	struct vlist *signals;			/**< Signal meta data for parsed samples by scan() */
-	bool header_printed;
-
-	enum Mode mode;
-
-	void *_vd;
-	const struct format_type *_vt;
 
 public:
 	int Format(struct vlist *signals, int flags);
@@ -83,40 +57,14 @@ public:
 
 	int check();
 
-	int open(const char *uri);
+	/** Format header */
+	void header(char *buf, size_t len, size_t *wbytes, const struct sample *smp);
 
-	int close();
+	/** Format footer */
+	void footer(char *buf, size_t len, size_t *wbytes);
 
-	void header(const struct sample *smp);
-
-	void footer();
-
-	int print(struct sample *smps[], unsigned cnt);
-
-	int scan(struct sample *smps[], unsigned cnt);
-
-	int eof();
-
-	void rewind();
-
-	int flush();
-
-	int fd();
-
-	int streamOpen(const char *uri);
-
-	int streamClose();
-
-	int streamEof();
-
-	void streamRewind();
-
-	int streamFd();
-
-	int streamFlush();
-
-	FILE * streamInput();
-	FILE * streamOutput();
+	void header(FILE *f, const struct sample *smp);
+	void footer(FILE *f);
 
 	/** Parse samples from the buffer \p buf with a length of \p len bytes.
 	 *
@@ -129,7 +77,7 @@ public:
 	 * @retval >=0		The number of samples which have been parsed from \p buf and written into \p smps.
 	 * @retval <0		Something went wrong.
 	 */
-	int sscan(const char *buf, size_t len, size_t *rbytes, struct sample *smps[], unsigned cnt);
+	int scan(const char *buf, size_t len, size_t *rbytes, const struct sample *smps[], unsigned cnt) = 0;
 
 	/** Print \p cnt samples from \p smps into buffer \p buf of length \p len.
 	 *
@@ -142,7 +90,11 @@ public:
 	 * @retval >=0		The number of samples from \p smps which have been written into \p buf.
 	 * @retval <0		Something went wrong.
 	 */
-	int sprint(char *buf, size_t len, size_t *wbytes, struct sample *smps[], unsigned cnt);
+	int print(char *buf, size_t len, size_t *wbytes, const struct sample *smps[], unsigned cnt) = 0;
+
+	int print(FILE *f, struct sample *smps[], unsigned cnt);
+
+	int scan(FILE *f, struct sample *smps[], unsigned cnt);
 };
 
 class LineFormat : public Format {
