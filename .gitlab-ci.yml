@@ -84,6 +84,7 @@ build:raspbian:armv6l:
   variables:
     LD_PRELOAD: /lib/arm-linux-gnueabihf/libSegFault.so
     DOCKER_IMAGE_DEV: villas/node-dev-raspbian
+    CMAKE_OPTS: -WITH_NODE_INFINIBAND=OFF -WITH_API=OFF
 
 build:docs:
   stage: build
