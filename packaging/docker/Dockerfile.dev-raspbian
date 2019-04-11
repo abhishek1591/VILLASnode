@@ -54,7 +54,6 @@ RUN apt-get install -y\
 	librabbitmq-dev \
 	libmosquitto-dev \
 	libcomedi-dev \
-	libibverbs-dev \
 	librdmacm-dev \
 	libre-dev \
 	libusb-1.0-0-dev
