@@ -117,6 +117,8 @@ test:unit:
     - mkdir -p build && cd build
     - cmake .. && make ${MAKE_OPTS} unit-tests
     - "tests/unit/unit-tests || true"
+  variables:
+    DOCKER_IMAGE_DEV: villas/node-dev
   image: ${DOCKER_IMAGE_DEV}:${DOCKER_TAG}
   tags:
     - docker
@@ -129,6 +131,8 @@ test:integration:
     - mkdir -p build && cd build
     - cmake ..
     - make ${MAKE_OPTS} run-integration-tests
+  variables:
+    DOCKER_IMAGE_DEV: villas/node-dev
   artifacts:
     name: ${CI_PROJECT_NAME}-integration-tests-${CI_BUILD_REF}
     when: always
@@ -143,6 +147,8 @@ test:integration:
 
 packaging:docker:
   stage: packaging
+  variables:
+    DOCKER_IMAGE_DEV: villas/node-dev
   script:
     - docker build
         --build-arg BUILDER_IMAGE=${DOCKER_IMAGE_DEV}:${DOCKER_TAG}
@@ -156,6 +162,8 @@ packaging:docker:
 
 packaging:rpm:
   stage: packaging
+  variables:
+    DOCKER_IMAGE_DEV: villas/node-dev
   dependencies:
     - build:docs
   script:
