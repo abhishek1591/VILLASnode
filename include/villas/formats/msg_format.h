@@ -48,8 +48,8 @@ extern "C" {
 
 /** The timestamp of a message in struct timespec format */
 #define MSG_TS(msg) (struct timespec) {	\
-	.tv_sec  = (msg)->ts.sec,	\
-	.tv_nsec = (msg)->ts.nsec	\
+	.tv_sec  = static_cast<time_t>( (msg)->ts.sec ),	\
+	.tv_nsec = static_cast<time_t>( (msg)->ts.nsec )	\
 }
 
 /** This message format is used by all clients
