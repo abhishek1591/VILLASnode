@@ -61,11 +61,11 @@ build:fedora:x86_64:
     - cmake .. ${CMAKE_OPTS}
     - make ${MAKE_OPTS}
     - cd ..
-    - zip -r build.zip build
+    - tar -czf build.tar.gz build/
   artifacts:
     expire_in: 1 week
     paths:
-      - build.zip
+      - build.tar.gz
   image: ${DOCKER_IMAGE_DEV}:${DOCKER_TAG}
   tags:
     - docker
