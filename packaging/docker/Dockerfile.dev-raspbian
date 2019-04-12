@@ -38,6 +38,8 @@ RUN apt-get update && apt-get install -y \
 	git curl wget tar bzip2 \
 	protobuf-compiler protobuf-c-compiler
 
+RUN apt-get install -y -t buster \
+	gcc-8 g++-8
 
 # Dependencies
 RUN apt-get install -y\
