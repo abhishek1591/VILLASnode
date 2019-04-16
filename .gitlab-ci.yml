@@ -60,12 +60,10 @@ build:fedora:x86_64:
     - mkdir -p build && cd build
     - cmake .. ${CMAKE_OPTS}
     - make ${MAKE_OPTS}
-#    - cd ..
-#    - tar -czf build.tar.gz build/
-#  artifacts:
-#    expire_in: 1 week
-#    paths:
-#      - build.tar.gz
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - build/
   image: ${DOCKER_IMAGE_DEV}:${DOCKER_TAG}
   tags:
     - docker
@@ -86,7 +84,7 @@ build:raspbian:armv6l:
   variables:
     LD_PRELOAD: /lib/arm-linux-gnueabihf/libSegFault.so
     DOCKER_IMAGE_DEV: villas/node-dev-raspbian
-    CMAKE_OPTS: -DWITH_NODE_INFINIBAND=OFF -DWITH_API=OFF -DWITH_WEB=OFF
+    CMAKE_OPTS: -DWITH_NODE_INFINIBAND=OFF -DWITH_API=OFF
 
 build:docs:
   stage: build
