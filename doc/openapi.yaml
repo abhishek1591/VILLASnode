@@ -1,0 +1,109 @@
+tags:
+  -
+    name: node_operations
+  -
+    name: metrics
+  -
+    name: data_stream
+paths:
+  /:
+    post:
+      responses:
+        '200':
+          description: Response
+          schema:
+            x-oad-type: object
+            type: object
+            properties:
+              action:
+                x-oad-type: reference
+                $ref: '#/definitions/Action'
+              id:
+                x-oad-type: reference
+                $ref: '#/definitions/RequestID'
+              response:
+                x-oad-type: allOf
+                allOf:
+                  - {x-oad-type: string, type: string, title: a}
+                  - {x-oad-type: integer, type: integer, title: b, format: int32}
+            required:
+              - action
+              - id
+          x-oad-type: response
+      parameters:
+        -
+          name: Request
+          in: body
+          required: true
+          schema:
+            x-oad-type: object
+            type: object
+            properties:
+              action:
+                x-oad-type: reference
+                $ref: '#/definitions/Action'
+              id:
+                x-oad-type: reference
+                $ref: '#/definitions/RequestID'
+              request:
+                x-oad-type: allOf
+                allOf:
+                  - {x-oad-type: reference, $ref: '#/definitions/CapabilitiesRequestBody'}
+                  - {x-oad-type: reference, $ref: '#/definitions/RestartRequestBody'}
+            required:
+              - action
+              - id
+              - request
+          x-oad-type: parameter
+    x-oad-type: operation
+definitions:
+  CapabilitiesRequestBody:
+    x-oad-type: object
+    type: object
+    title: CapabilitiesRequestBody
+  RestartRequestBody:
+    x-oad-type: object
+    type: object
+  RequestID:
+    x-oad-type: string
+    type: string
+  Action:
+    x-oad-type: string
+    type: string
+    enum:
+      - restart
+      - shutdown
+      - config
+      - stats
+      - status
+      - paths
+      - nodes
+      - node.start
+      - node.stop
+      - node.resume
+info:
+  title: VILLASnode
+  version: 0.8.0
+  description: 'A HTTP/REST API for controlling VILLASnode remotely without the need to restart the daemon.'
+  termsOfService: 'https://www.fein-aachen.org/projects/villas-node/'
+  contact:
+    name: 'Steffen Vogel'
+    email: post@steffenvogel.de
+    url: 'https://www.steffenvogel.de'
+  license:
+    name: GPL-v3
+    url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+externalDocs:
+  url: 'https://villas.fein-aachen.org/doc/node.html'
+host: node.villas.fein-aachen.org
+basePath: /v1/
+schemes:
+  - http
+  - https
+  - ws
+  - wss
+consumes:
+  - application/json
+produces:
+  - application/json
+swagger: '2.0'
